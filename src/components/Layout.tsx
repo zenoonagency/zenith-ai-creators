@@ -10,7 +10,7 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-gray-50">
         <AppSidebar />
         
         <div className="flex-1 flex flex-col">
@@ -18,7 +18,7 @@ export function Layout({ children }: LayoutProps) {
             <div className="flex items-center">
               <SidebarTrigger className="mr-4" />
               <h1 className="text-xl font-semibold text-gray-800">
-                Sistema de Agentes de IA
+                Dashboard
               </h1>
             </div>
             <UserHeader />
