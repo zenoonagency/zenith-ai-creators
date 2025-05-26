@@ -1,0 +1,92 @@
+
+import { Bot, MessageCircle, Plus } from "lucide-react"
+import { NavLink, useLocation } from "react-router-dom"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar"
+
+const menuItems = [
+  { 
+    title: "Agentes de IA", 
+    url: "/agentes", 
+    icon: Bot,
+    description: "Criar e gerenciar agentes"
+  },
+  { 
+    title: "Conectar WhatsApp", 
+    url: "/whatsapp", 
+    icon: MessageCircle,
+    description: "Integração com WhatsApp"
+  },
+]
+
+export function AppSidebar() {
+  const { collapsed } = useSidebar()
+  const location = useLocation()
+  const currentPath = location.pathname
+
+  const isActive = (path: string) => currentPath === path || currentPath.startsWith(path)
+
+  return (
+    <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible>
+      <SidebarTrigger className="m-2 self-end" />
+      
+      <SidebarContent>
+        <div className="p-4">
+          <h2 className={`font-bold text-lg ${collapsed ? 'hidden' : 'block'}`}>
+            AI Agents Hub
+          </h2>
+          {collapsed && (
+            <div className="text-center">
+              <Bot className="h-6 w-6 mx-auto" />
+            </div>
+          )}
+        </div>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>
+            {!collapsed && "Menu Principal"}
+          </SidebarGroupLabel>
+          
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to={item.url} 
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 p-3 rounded-lg transition-all ${
+                          isActive 
+                            ? "bg-primary text-primary-foreground font-medium" 
+                            : "hover:bg-muted/50"
+                        }`
+                      }
+                    >
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      {!collapsed && (
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">{item.title}</span>
+                          <span className="text-xs opacity-70">{item.description}</span>
+                        </div>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
+  )
+}
