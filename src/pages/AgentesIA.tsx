@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import { Bot, Send, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/AuthContext"
 
 const funcoes = [
   { value: "vendedor", label: "Vendedor" },
@@ -37,6 +37,7 @@ interface AgentData {
 
 const AgentesIA = () => {
   const { toast } = useToast()
+  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [agentData, setAgentData] = useState<AgentData>({
     nomeAgente: "",
@@ -73,16 +74,23 @@ const AgentesIA = () => {
     console.log("Enviando dados do agente:", agentData)
 
     try {
+      const webhookData = {
+        ...agentData,
+        userEmail: user?.email,
+        userName: user?.name,
+        userId: user?.id,
+        timestamp: new Date().toISOString(),
+        created_from: window.location.origin,
+      }
+
+      console.log("Dados completos enviados para o webhook:", webhookData)
+
       const response = await fetch("https://zenoon-agency-n8n.htm57w.easypanel.host/webhook/agents", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...agentData,
-          timestamp: new Date().toISOString(),
-          created_from: window.location.origin,
-        }),
+        body: JSON.stringify(webhookData),
       })
 
       if (response.ok) {
