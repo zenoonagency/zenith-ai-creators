@@ -4,7 +4,8 @@ import { CSS } from '@dnd-kit/utilities'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Paperclip, CheckSquare, DollarSign, Edit, Trash2 } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { MoreHorizontal, Paperclip, CheckSquare, DollarSign, Edit, Trash2, Calendar, User, Phone } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,14 +13,40 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+interface Subtask {
+  id: string
+  name: string
+  description: string
+  completed: boolean
+}
+
+interface Attachment {
+  id: string
+  name: string
+  type: 'image' | 'document' | 'video'
+  url: string
+}
+
+interface CustomField {
+  id: string
+  name: string
+  value: string
+}
+
 interface KanbanCard {
   id: string
   title: string
+  description?: string
   value: number
+  phone?: string
+  date?: string
+  time?: string
+  responsible?: string
   priority: 'low' | 'medium' | 'high' | 'urgent'
-  subtasks: { completed: number; total: number }
-  attachments: number
+  subtasks: Subtask[]
+  attachments: Attachment[]
   tags: string[]
+  customFields: CustomField[]
   listId: string
 }
 
@@ -79,6 +106,9 @@ export function KanbanCard({ card, onEdit, onDelete, isDragging = false }: Kanba
     e.stopPropagation()
   }
 
+  const completedSubtasks = card.subtasks?.filter(task => task.completed).length || 0
+  const totalSubtasks = card.subtasks?.length || 0
+
   return (
     <Card 
       ref={setNodeRef} 
@@ -91,6 +121,11 @@ export function KanbanCard({ card, onEdit, onDelete, isDragging = false }: Kanba
             <h3 className="font-medium text-sm text-gray-900 line-clamp-2">
               {card.title}
             </h3>
+            {card.description && (
+              <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                {card.description}
+              </p>
+            )}
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -129,27 +164,49 @@ export function KanbanCard({ card, onEdit, onDelete, isDragging = false }: Kanba
             R$ {card.value.toFixed(2)}
           </div>
 
-          {card.subtasks.total > 0 && (
+          {card.date && (
+            <div className="flex items-center text-blue-600 text-sm">
+              <Calendar className="h-4 w-4 mr-1" />
+              {new Date(card.date).toLocaleDateString('pt-BR')}
+              {card.time && ` às ${card.time}`}
+            </div>
+          )}
+
+          {card.responsible && (
+            <div className="flex items-center text-purple-600 text-sm">
+              <User className="h-4 w-4 mr-1" />
+              {card.responsible}
+            </div>
+          )}
+
+          {card.phone && (
+            <div className="flex items-center text-gray-600 text-sm">
+              <Phone className="h-4 w-4 mr-1" />
+              {card.phone}
+            </div>
+          )}
+
+          {totalSubtasks > 0 && (
             <div className="flex items-center text-blue-600 text-sm">
               <CheckSquare className="h-4 w-4 mr-1" />
-              {card.subtasks.completed}/{card.subtasks.total} subtarefas
+              {completedSubtasks}/{totalSubtasks} subtarefas
               <div className="ml-2 flex-1 bg-blue-100 rounded-full h-1">
                 <div 
                   className="bg-blue-600 h-1 rounded-full" 
-                  style={{ width: `${(card.subtasks.completed / card.subtasks.total) * 100}%` }}
+                  style={{ width: `${totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0}%` }}
                 />
               </div>
             </div>
           )}
 
-          {card.attachments > 0 && (
+          {card.attachments && card.attachments.length > 0 && (
             <div className="flex items-center text-blue-600 text-sm">
               <Paperclip className="h-4 w-4 mr-1" />
-              {card.attachments} anexo{card.attachments > 1 ? 's' : ''}
+              {card.attachments.length} anexo{card.attachments.length > 1 ? 's' : ''}
             </div>
           )}
 
-          {card.tags.length > 0 && (
+          {card.tags && card.tags.length > 0 && (
             <div className="flex gap-1 flex-wrap">
               {card.tags.map((tag, index) => (
                 <Badge 
@@ -163,6 +220,16 @@ export function KanbanCard({ card, onEdit, onDelete, isDragging = false }: Kanba
                 >
                   {tag}
                 </Badge>
+              ))}
+            </div>
+          )}
+
+          {card.customFields && card.customFields.length > 0 && (
+            <div className="space-y-1">
+              {card.customFields.map((field) => (
+                <div key={field.id} className="text-xs text-gray-600">
+                  <span className="font-medium">{field.name}:</span> {field.value}
+                </div>
               ))}
             </div>
           )}

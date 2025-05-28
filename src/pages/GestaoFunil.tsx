@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Plus, Search, CheckCircle, Settings, Zap } from "lucide-react"
+import { Plus, Search, CheckCircle, Settings, Zap, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { KanbanBoard } from "@/components/kanban/KanbanBoard"
 import { CreateBoardDialog } from "@/components/kanban/CreateBoardDialog"
@@ -12,16 +12,49 @@ import { CardSearch } from "@/components/kanban/CardSearch"
 import { CompletedCards } from "@/components/kanban/CompletedCards"
 import { AutomationDialog } from "@/components/kanban/AutomationDialog"
 import { BoardConfigDialog } from "@/components/kanban/BoardConfigDialog"
+import { TagManager } from "@/components/kanban/TagManager"
 import { useToast } from "@/hooks/use-toast"
+
+interface Subtask {
+  id: string
+  name: string
+  description: string
+  completed: boolean
+}
+
+interface Attachment {
+  id: string
+  name: string
+  type: 'image' | 'document' | 'video'
+  url: string
+}
+
+interface CustomField {
+  id: string
+  name: string
+  value: string
+}
+
+interface TagData {
+  id: string
+  name: string
+  color: string
+}
 
 interface KanbanCard {
   id: string
   title: string
+  description?: string
   value: number
+  phone?: string
+  date?: string
+  time?: string
+  responsible?: string
   priority: 'low' | 'medium' | 'high' | 'urgent'
-  subtasks: { completed: number; total: number }
-  attachments: number
+  subtasks: Subtask[]
+  attachments: Attachment[]
   tags: string[]
+  customFields: CustomField[]
   listId: string
 }
 
@@ -64,11 +97,24 @@ const initialBoards: Board[] = [
           {
             id: "card-1",
             title: "teste",
+            description: "Descrição do teste",
             value: 500,
+            phone: "+55 (11) 99999-9999",
+            date: "2024-01-15",
+            time: "14:30",
+            responsible: "João Silva",
             priority: "urgent",
-            subtasks: { completed: 1, total: 2 },
-            attachments: 1,
+            subtasks: [
+              { id: "sub-1", name: "Tarefa 1", description: "Descrição", completed: true },
+              { id: "sub-2", name: "Tarefa 2", description: "Descrição", completed: false }
+            ],
+            attachments: [
+              { id: "att-1", name: "documento.pdf", type: "document", url: "#" }
+            ],
             tags: ["Agente de IA", "Marketing"],
+            customFields: [
+              { id: "cf-1", name: "Origem", value: "Website" }
+            ],
             listId: "pendente"
           }
         ]
@@ -90,6 +136,11 @@ const GestaoFunil = () => {
   const [boards, setBoards] = useState<Board[]>(initialBoards)
   const [currentBoardId, setCurrentBoardId] = useState("1")
   const [automations, setAutomations] = useState<Automation[]>([])
+  const [tags, setTags] = useState<TagData[]>([
+    { id: "1", name: "Agente de IA", color: "#F59E0B" },
+    { id: "2", name: "Marketing", color: "#3B82F6" }
+  ])
+  
   const [showCreateBoard, setShowCreateBoard] = useState(false)
   const [showCreateList, setShowCreateList] = useState(false)
   const [showCreateCard, setShowCreateCard] = useState(false)
@@ -99,6 +150,7 @@ const GestaoFunil = () => {
   const [showCompletedCards, setShowCompletedCards] = useState(false)
   const [showAutomations, setShowAutomations] = useState(false)
   const [showBoardConfig, setShowBoardConfig] = useState(false)
+  const [showTagManager, setShowTagManager] = useState(false)
   const [selectedListId, setSelectedListId] = useState<string>("")
   const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null)
   const [selectedList, setSelectedList] = useState<KanbanList | null>(null)
@@ -249,7 +301,6 @@ const GestaoFunil = () => {
       board.id === currentBoardId ? updatedBoard : board
     ))
 
-    // Trigger automations
     await triggerAutomations('card_created', newCard)
     await triggerAutomations('card_created_in_list', newCard)
   }
@@ -342,7 +393,6 @@ const GestaoFunil = () => {
       board.id === currentBoardId ? updatedBoard : board
     ))
 
-    // Trigger automations
     await triggerAutomations('card_moved', { ...card, listId: toListId }, fromListId, toListId)
   }
 
@@ -399,6 +449,28 @@ const GestaoFunil = () => {
     })
   }
 
+  const handleCreateTag = (tagData: Omit<TagData, 'id'>) => {
+    const newTag: TagData = {
+      ...tagData,
+      id: Date.now().toString()
+    }
+    setTags([...tags, newTag])
+    
+    toast({
+      title: "Marcador Criado",
+      description: "O marcador foi criado com sucesso.",
+    })
+  }
+
+  const handleDeleteTag = (tagId: string) => {
+    setTags(tags.filter(tag => tag.id !== tagId))
+    
+    toast({
+      title: "Marcador Excluído",
+      description: "O marcador foi removido com sucesso.",
+    })
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -425,6 +497,14 @@ const GestaoFunil = () => {
           >
             <Search className="h-4 w-4 mr-1" />
             Procurar Cartão
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowTagManager(true)}
+          >
+            <Tag className="h-4 w-4 mr-1" />
+            Marcadores
           </Button>
           <Button 
             className="bg-purple-600 hover:bg-purple-700" 
@@ -512,6 +592,8 @@ const GestaoFunil = () => {
         open={showCreateCard}
         onOpenChange={setShowCreateCard}
         onCreateCard={handleCreateCard}
+        availableTags={tags}
+        onCreateTag={() => setShowTagManager(true)}
       />
 
       {selectedCard && (
@@ -520,6 +602,8 @@ const GestaoFunil = () => {
           onOpenChange={setShowEditCard}
           card={selectedCard}
           onEditCard={handleEditCard}
+          availableTags={tags}
+          onCreateTag={() => setShowTagManager(true)}
         />
       )}
 
@@ -532,6 +616,14 @@ const GestaoFunil = () => {
           onDeleteList={handleDeleteList}
         />
       )}
+
+      <TagManager
+        open={showTagManager}
+        onOpenChange={setShowTagManager}
+        tags={tags}
+        onCreateTag={handleCreateTag}
+        onDeleteTag={handleDeleteTag}
+      />
 
       {currentBoard && (
         <>
