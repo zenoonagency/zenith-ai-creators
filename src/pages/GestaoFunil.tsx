@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Plus, Edit, Trash2, Move3D, MoreHorizontal, CheckSquare, Paperclip, DollarSign } from "lucide-react";
 import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent, PointerSensor, useSensor, useSensors, } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { Column } from "@tanstack/react-table";
 import { v4 as uuidv4 } from 'uuid';
 import {
   Card,
@@ -85,8 +86,6 @@ interface KanbanList {
   id: string;
   title: string;
   cards: KanbanCard[];
-  totalValue: number;
-  color?: string;
 }
 
 interface KanbanBoard {
@@ -104,7 +103,6 @@ const GestaoFunil = () => {
         {
           id: "list-1",
           title: "Em Aberto",
-          totalValue: 1500,
           cards: [
             {
               id: "card-1",
@@ -195,7 +193,6 @@ const GestaoFunil = () => {
         {
           id: "list-2",
           title: "Em Desenvolvimento",
-          totalValue: 2000,
           cards: [
             {
               id: "card-3",
@@ -244,7 +241,6 @@ const GestaoFunil = () => {
         {
           id: "list-3",
           title: "Concluído",
-          totalValue: 3000,
           cards: [
             {
               id: "card-4",
@@ -501,7 +497,6 @@ const GestaoFunil = () => {
         id: uuidv4(),
         title: newListTitle,
         cards: [],
-        totalValue: 0,
       };
 
       const updatedBoards = boards.map((board) => {
@@ -704,13 +699,10 @@ const GestaoFunil = () => {
                     <KanbanList
                       key={list.id}
                       list={list}
-                      onCreateCard={(listId) => {
-                        setActiveList(list);
-                        setShowCreateCard(true);
-                      }}
+                      onEdit={() => handleEditList(list)}
+                      onDelete={(listId) => handleDeleteList(activeBoard.id, listId)}
                       onEditCard={handleEditCard}
                       onDeleteCard={(cardId) => handleDeleteCard(activeBoard.id, list.id, cardId)}
-                      onEditList={handleEditList}
                     />
                   ))}
               </SortableContext>
