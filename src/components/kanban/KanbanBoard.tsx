@@ -23,6 +23,7 @@ interface KanbanList {
   title: string
   cards: KanbanCard[]
   totalValue: number
+  color?: string
 }
 
 interface Board {
@@ -38,6 +39,7 @@ interface KanbanBoardProps {
   onCreateCard: (listId: string) => void
   onEditCard: (card: KanbanCard) => void
   onDeleteCard: (cardId: string) => void
+  onEditList: (list: KanbanList) => void
 }
 
 export function KanbanBoard({ 
@@ -46,7 +48,8 @@ export function KanbanBoard({
   onCreateList, 
   onCreateCard, 
   onEditCard, 
-  onDeleteCard 
+  onDeleteCard,
+  onEditList
 }: KanbanBoardProps) {
   const [activeCard, setActiveCard] = useState<KanbanCard | null>(null)
 
@@ -72,7 +75,6 @@ export function KanbanBoard({
     const overId = over.id.toString()
     const activeId = active.id.toString()
 
-    // Se soltar em uma lista
     if (overId.startsWith('list-')) {
       const toListId = overId.replace('list-', '')
       const fromListId = activeCard.listId
@@ -95,12 +97,10 @@ export function KanbanBoard({
 
     if (activeId === overId) return
 
-    // Permitir soltar em listas vazias
     if (overId.startsWith('list-')) {
       return
     }
 
-    // Lógica para reorganizar dentro da mesma lista ou mover entre listas
     const activeCard = board.lists.flatMap(list => list.cards).find(card => card.id === activeId)
     const overCard = board.lists.flatMap(list => list.cards).find(card => card.id === overId)
 
@@ -127,11 +127,12 @@ export function KanbanBoard({
                 onCreateCard={onCreateCard}
                 onEditCard={onEditCard}
                 onDeleteCard={onDeleteCard}
+                onEditList={onEditList}
               />
             ))}
           </SortableContext>
           
-          <div className="min-w-[280px] flex-shrink-0">
+          <div className="min-w-[320px] flex-shrink-0">
             <Button
               variant="outline"
               className="w-full h-12 border-dashed border-2 border-gray-300 text-gray-600 hover:border-purple-300 hover:text-purple-600"

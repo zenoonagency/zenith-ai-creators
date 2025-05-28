@@ -1,15 +1,17 @@
-
 import { useState } from "react"
-import { Plus, Search, CheckCircle, Settings } from "lucide-react"
+import { Plus, Search, CheckCircle, Settings, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { KanbanBoard } from "@/components/kanban/KanbanBoard"
 import { CreateBoardDialog } from "@/components/kanban/CreateBoardDialog"
 import { CreateListDialog } from "@/components/kanban/CreateListDialog"
 import { CreateCardDialog } from "@/components/kanban/CreateCardDialog"
 import { EditCardDialog } from "@/components/kanban/EditCardDialog"
+import { EditListDialog } from "@/components/kanban/EditListDialog"
 import { BoardSelector } from "@/components/kanban/BoardSelector"
 import { CardSearch } from "@/components/kanban/CardSearch"
 import { CompletedCards } from "@/components/kanban/CompletedCards"
+import { AutomationDialog } from "@/components/kanban/AutomationDialog"
+import { BoardConfigDialog } from "@/components/kanban/BoardConfigDialog"
 
 interface KanbanCard {
   id: string
@@ -27,12 +29,15 @@ interface KanbanList {
   title: string
   cards: KanbanCard[]
   totalValue: number
+  color?: string
 }
 
 interface Board {
   id: string
   name: string
   lists: KanbanList[]
+  visibility?: 'everyone' | 'me' | 'specific'
+  completedListId?: string
 }
 
 const initialBoards: Board[] = [
@@ -44,6 +49,7 @@ const initialBoards: Board[] = [
         id: "pendente",
         title: "Pendente",
         totalValue: 500,
+        color: "#ef4444",
         cards: [
           {
             id: "card-1",
@@ -61,9 +67,11 @@ const initialBoards: Board[] = [
         id: "concluido",
         title: "Concluído",
         totalValue: 0,
+        color: "#22c55e",
         cards: []
       }
-    ]
+    ],
+    completedListId: "concluido"
   }
 ]
 
@@ -74,10 +82,14 @@ const GestaoFunil = () => {
   const [showCreateList, setShowCreateList] = useState(false)
   const [showCreateCard, setShowCreateCard] = useState(false)
   const [showEditCard, setShowEditCard] = useState(false)
+  const [showEditList, setShowEditList] = useState(false)
   const [showCardSearch, setShowCardSearch] = useState(false)
   const [showCompletedCards, setShowCompletedCards] = useState(false)
+  const [showAutomations, setShowAutomations] = useState(false)
+  const [showBoardConfig, setShowBoardConfig] = useState(false)
   const [selectedListId, setSelectedListId] = useState<string>("")
   const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null)
+  const [selectedList, setSelectedList] = useState<KanbanList | null>(null)
 
   const currentBoard = boards.find(board => board.id === currentBoardId)
 
@@ -104,6 +116,36 @@ const GestaoFunil = () => {
     const updatedBoard = {
       ...currentBoard,
       lists: [...currentBoard.lists, newList]
+    }
+    
+    setBoards(boards.map(board => 
+      board.id === currentBoardId ? updatedBoard : board
+    ))
+  }
+
+  const handleEditList = (listId: string, title: string, color: string) => {
+    if (!currentBoard) return
+    
+    const updatedBoard = {
+      ...currentBoard,
+      lists: currentBoard.lists.map(list => 
+        list.id === listId 
+          ? { ...list, title, color }
+          : list
+      )
+    }
+    
+    setBoards(boards.map(board => 
+      board.id === currentBoardId ? updatedBoard : board
+    ))
+  }
+
+  const handleDeleteList = (listId: string) => {
+    if (!currentBoard) return
+    
+    const updatedBoard = {
+      ...currentBoard,
+      lists: currentBoard.lists.filter(list => list.id !== listId)
     }
     
     setBoards(boards.map(board => 
@@ -219,7 +261,7 @@ const GestaoFunil = () => {
   }
 
   const handleDeleteBoard = () => {
-    if (boards.length === 1) return // Não deletar o último quadro
+    if (boards.length === 1) return
     
     const updatedBoards = boards.filter(board => board.id !== currentBoardId)
     setBoards(updatedBoards)
@@ -237,6 +279,25 @@ const GestaoFunil = () => {
     
     setBoards([...boards, duplicatedBoard])
     setCurrentBoardId(duplicatedBoard.id)
+  }
+
+  const handleSetCompletedList = (listId: string) => {
+    if (!currentBoard) return
+    
+    const updatedBoard = {
+      ...currentBoard,
+      completedListId: listId
+    }
+    
+    setBoards(boards.map(board => 
+      board.id === currentBoardId ? updatedBoard : board
+    ))
+  }
+
+  const handleUpdateBoard = (boardId: string, updates: Partial<Board>) => {
+    setBoards(boards.map(board => 
+      board.id === boardId ? { ...board, ...updates } : board
+    ))
   }
 
   return (
@@ -266,10 +327,19 @@ const GestaoFunil = () => {
             <Search className="h-4 w-4 mr-1" />
             Procurar Cartão
           </Button>
-          <Button className="bg-purple-600 hover:bg-purple-700" size="sm">
+          <Button 
+            className="bg-purple-600 hover:bg-purple-700" 
+            size="sm"
+            onClick={() => setShowAutomations(true)}
+          >
+            <Zap className="h-4 w-4 mr-1" />
             Criar Automação
           </Button>
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowBoardConfig(true)}
+          >
             <Settings className="h-4 w-4 mr-1" />
             Configurar Quadro
           </Button>
@@ -320,6 +390,10 @@ const GestaoFunil = () => {
             setShowEditCard(true)
           }}
           onDeleteCard={handleDeleteCard}
+          onEditList={(list) => {
+            setSelectedList(list)
+            setShowEditList(true)
+          }}
         />
       )}
 
@@ -350,6 +424,16 @@ const GestaoFunil = () => {
         />
       )}
 
+      {selectedList && (
+        <EditListDialog
+          open={showEditList}
+          onOpenChange={setShowEditList}
+          list={selectedList}
+          onEditList={handleEditList}
+          onDeleteList={handleDeleteList}
+        />
+      )}
+
       {currentBoard && (
         <>
           <CardSearch
@@ -366,6 +450,21 @@ const GestaoFunil = () => {
             open={showCompletedCards}
             onOpenChange={setShowCompletedCards}
             board={currentBoard}
+            completedListId={currentBoard.completedListId}
+            onSetCompletedList={handleSetCompletedList}
+          />
+
+          <AutomationDialog
+            open={showAutomations}
+            onOpenChange={setShowAutomations}
+            board={currentBoard}
+          />
+
+          <BoardConfigDialog
+            open={showBoardConfig}
+            onOpenChange={setShowBoardConfig}
+            board={currentBoard}
+            onUpdateBoard={handleUpdateBoard}
           />
         </>
       )}
