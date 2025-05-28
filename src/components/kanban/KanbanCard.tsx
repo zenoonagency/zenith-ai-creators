@@ -1,118 +1,100 @@
-
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { MoreHorizontal, Paperclip, CheckSquare, DollarSign, Edit, Trash2 } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { MoreHorizontal, Paperclip, CheckSquare, DollarSign, Edit, Trash2 } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 interface Subtask {
-  id: string
-  name: string
-  description: string
-  completed: boolean
+  id: string;
+  name: string;
+  description: string;
+  completed: boolean;
 }
-
 interface Attachment {
-  id: string
-  name: string
-  type: 'image' | 'document' | 'video'
-  url: string
+  id: string;
+  name: string;
+  type: 'image' | 'document' | 'video';
+  url: string;
 }
-
 interface CustomField {
-  id: string
-  name: string
-  value: string
+  id: string;
+  name: string;
+  value: string;
 }
-
 interface KanbanCard {
-  id: string
-  title: string
-  description?: string
-  value: number
-  phone?: string
-  date?: string
-  time?: string
-  responsible?: string
-  priority: 'low' | 'medium' | 'high' | 'urgent'
-  subtasks: Subtask[]
-  attachments: Attachment[]
-  tags: string[]
-  customFields: CustomField[]
-  listId: string
+  id: string;
+  title: string;
+  description?: string;
+  value: number;
+  phone?: string;
+  date?: string;
+  time?: string;
+  responsible?: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  subtasks: Subtask[];
+  attachments: Attachment[];
+  tags: string[];
+  customFields: CustomField[];
+  listId: string;
 }
-
 interface KanbanCardProps {
-  card: KanbanCard
-  onEdit: (card: KanbanCard) => void
-  onDelete: (cardId: string) => void
-  isDragging?: boolean
+  card: KanbanCard;
+  onEdit: (card: KanbanCard) => void;
+  onDelete: (cardId: string) => void;
+  isDragging?: boolean;
 }
-
 const priorityColors = {
   low: 'bg-gray-100 text-gray-700',
   medium: 'bg-yellow-100 text-yellow-700',
   high: 'bg-orange-100 text-orange-700',
   urgent: 'bg-red-100 text-red-700'
-}
-
+};
 const priorityLabels = {
   low: 'Baixa',
   medium: 'Média',
   high: 'Alta',
   urgent: 'Urgente'
-}
-
-export function KanbanCard({ card, onEdit, onDelete, isDragging = false }: KanbanCardProps) {
+};
+export function KanbanCard({
+  card,
+  onEdit,
+  onDelete,
+  isDragging = false
+}: KanbanCardProps) {
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
     transition,
-    isDragging: isSortableDragging,
-  } = useSortable({ id: card.id })
-
+    isDragging: isSortableDragging
+  } = useSortable({
+    id: card.id
+  });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging || isSortableDragging ? 0.5 : 1,
-  }
-
+    opacity: isDragging || isSortableDragging ? 0.5 : 1
+  };
   const handleEdit = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    onEdit(card)
-  }
-
+    e.preventDefault();
+    e.stopPropagation();
+    onEdit(card);
+  };
   const handleDelete = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    onDelete(card.id)
-  }
-
+    e.preventDefault();
+    e.stopPropagation();
+    onDelete(card.id);
+  };
   const handleDropdownClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }
-
-  const completedSubtasks = card.subtasks?.filter(task => task.completed).length || 0
-  const totalSubtasks = card.subtasks?.length || 0
-
-  return (
-    <Card 
-      ref={setNodeRef} 
-      style={style} 
-      className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow bg-white border-l-4 border-l-gray-300"
-    >
-      <CardContent className="p-3 space-y-2">
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  const completedSubtasks = card.subtasks?.filter(task => task.completed).length || 0;
+  const totalSubtasks = card.subtasks?.length || 0;
+  return <Card ref={setNodeRef} style={style} className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow bg-white border-l-4 border-l-gray-300">
+      <CardContent className="p-3 space-y-2 rounded-sm">
         <div className="flex items-start justify-between">
           <div {...attributes} {...listeners} className="flex-1">
             <h3 className="font-medium text-sm text-gray-900">
@@ -121,12 +103,7 @@ export function KanbanCard({ card, onEdit, onDelete, isDragging = false }: Kanba
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-6 w-6 p-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={handleDropdownClick}
-              >
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity" onClick={handleDropdownClick}>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -135,10 +112,7 @@ export function KanbanCard({ card, onEdit, onDelete, isDragging = false }: Kanba
                 <Edit className="h-4 w-4 mr-2" />
                 Editar
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={handleDelete}
-                className="text-red-600 focus:text-red-600 cursor-pointer"
-              >
+              <DropdownMenuItem onClick={handleDelete} className="text-red-600 focus:text-red-600 cursor-pointer">
                 <Trash2 className="h-4 w-4 mr-2" />
                 Excluir
               </DropdownMenuItem>
@@ -160,47 +134,30 @@ export function KanbanCard({ card, onEdit, onDelete, isDragging = false }: Kanba
         </div>
 
         {/* Subtarefas */}
-        {totalSubtasks > 0 && (
-          <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm flex items-center justify-between w-full">
+        {totalSubtasks > 0 && <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm flex items-center justify-between w-full">
             <div className="flex items-center">
               <CheckSquare className="h-4 w-4 mr-1" />
               {completedSubtasks}/{totalSubtasks} subtarefas
             </div>
             <div className="flex-1 ml-2 bg-blue-200 rounded-full h-1">
-              <div 
-                className="bg-blue-600 h-1 rounded-full" 
-                style={{ width: `${totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0}%` }}
-              />
+              <div className="bg-blue-600 h-1 rounded-full" style={{
+            width: `${totalSubtasks > 0 ? completedSubtasks / totalSubtasks * 100 : 0}%`
+          }} />
             </div>
-          </div>
-        )}
+          </div>}
 
         {/* Anexos */}
-        {card.attachments && card.attachments.length > 0 && (
-          <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm flex items-center w-full">
+        {card.attachments && card.attachments.length > 0 && <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm flex items-center w-full">
             <Paperclip className="h-4 w-4 mr-1" />
             {card.attachments.length} anexo{card.attachments.length > 1 ? 's' : ''}
-          </div>
-        )}
+          </div>}
 
         {/* Tags */}
-        {card.tags && card.tags.length > 0 && (
-          <div className="flex gap-1 flex-wrap">
-            {card.tags.map((tag, index) => (
-              <div
-                key={index}
-                className={`text-xs px-2 py-1 rounded ${
-                  tag === 'Agente de IA' 
-                    ? 'bg-orange-100 text-orange-700' 
-                    : 'bg-blue-100 text-blue-700'
-                }`}
-              >
+        {card.tags && card.tags.length > 0 && <div className="flex gap-1 flex-wrap">
+            {card.tags.map((tag, index) => <div key={index} className={`text-xs px-2 py-1 rounded ${tag === 'Agente de IA' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>
                 {tag}
-              </div>
-            ))}
-          </div>
-        )}
+              </div>)}
+          </div>}
       </CardContent>
-    </Card>
-  )
+    </Card>;
 }
