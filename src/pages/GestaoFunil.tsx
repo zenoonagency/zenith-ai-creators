@@ -14,74 +14,13 @@ import { AutomationDialog } from "@/components/kanban/AutomationDialog"
 import { BoardConfigDialog } from "@/components/kanban/BoardConfigDialog"
 import { TagManager } from "@/components/kanban/TagManager"
 import { useToast } from "@/hooks/use-toast"
-
-interface Subtask {
-  id: string
-  name: string
-  description: string
-  completed: boolean
-}
-
-interface Attachment {
-  id: string
-  name: string
-  type: 'image' | 'document' | 'video'
-  url: string
-}
-
-interface CustomField {
-  id: string
-  name: string
-  value: string
-}
-
-interface TagData {
-  id: string
-  name: string
-  color: string
-}
-
-interface KanbanCard {
-  id: string
-  title: string
-  description?: string
-  value: number
-  phone?: string
-  date?: string
-  time?: string
-  responsible?: string
-  priority: 'low' | 'medium' | 'high' | 'urgent'
-  subtasks: Subtask[]
-  attachments: Attachment[]
-  tags: string[]
-  customFields: CustomField[]
-  listId: string
-}
-
-interface KanbanList {
-  id: string
-  title: string
-  cards: KanbanCard[]
-  totalValue: number
-  color?: string
-}
-
-interface Board {
-  id: string
-  name: string
-  lists: KanbanList[]
-  visibility?: 'everyone' | 'me' | 'specific'
-  completedListId?: string
-}
-
-interface Automation {
-  id: string
-  trigger: string
-  sourceListId?: string
-  targetListId?: string
-  webhookUrl: string
-  active: boolean
-}
+import type { 
+  Board, 
+  KanbanList, 
+  KanbanCard, 
+  TagData, 
+  Automation 
+} from "@/types/kanban"
 
 const initialBoards: Board[] = [
   {

@@ -1,4 +1,3 @@
-
 import { DndContext, DragEndEvent, DragOverEvent, DragOverlay, DragStartEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
 import { useState } from 'react'
@@ -6,66 +5,16 @@ import { KanbanList } from './KanbanList'
 import { KanbanCard } from './KanbanCard'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
-
-interface Subtask {
-  id: string
-  name: string
-  description: string
-  completed: boolean
-}
-
-interface Attachment {
-  id: string
-  name: string
-  type: 'image' | 'document' | 'video'
-  url: string
-}
-
-interface CustomField {
-  id: string
-  name: string
-  value: string
-}
-
-interface KanbanCard {
-  id: string
-  title: string
-  description?: string
-  value: number
-  phone?: string
-  date?: string
-  time?: string
-  responsible?: string
-  priority: 'low' | 'medium' | 'high' | 'urgent'
-  subtasks: Subtask[]
-  attachments: Attachment[]
-  tags: string[]
-  customFields: CustomField[]
-  listId: string
-}
-
-interface KanbanList {
-  id: string
-  title: string
-  cards: KanbanCard[]
-  totalValue: number
-  color?: string
-}
-
-interface Board {
-  id: string
-  name: string
-  lists: KanbanList[]
-}
+import type { Board, KanbanCard as KanbanCardType, KanbanList as KanbanListType } from '@/types/kanban'
 
 interface KanbanBoardProps {
   board: Board
   onMoveCard: (cardId: string, fromListId: string, toListId: string) => void
   onCreateList: () => void
   onCreateCard: (listId: string) => void
-  onEditCard: (card: KanbanCard) => void
+  onEditCard: (card: KanbanCardType) => void
   onDeleteCard: (cardId: string) => void
-  onEditList: (list: KanbanList) => void
+  onEditList: (list: KanbanListType) => void
 }
 
 export function KanbanBoard({ 
@@ -77,7 +26,7 @@ export function KanbanBoard({
   onDeleteCard,
   onEditList
 }: KanbanBoardProps) {
-  const [activeCard, setActiveCard] = useState<KanbanCard | null>(null)
+  const [activeCard, setActiveCard] = useState<KanbanCardType | null>(null)
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event

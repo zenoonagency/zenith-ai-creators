@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Paperclip, CheckSquare, DollarSign, Edit, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import type { KanbanCard as KanbanCardType } from '@/types/kanban';
+
 interface Subtask {
   id: string;
   name: string;
@@ -39,23 +41,26 @@ interface KanbanCard {
   listId: string;
 }
 interface KanbanCardProps {
-  card: KanbanCard;
-  onEdit: (card: KanbanCard) => void;
+  card: KanbanCardType;
+  onEdit: (card: KanbanCardType) => void;
   onDelete: (cardId: string) => void;
   isDragging?: boolean;
 }
+
 const priorityColors = {
   low: 'bg-gray-100 text-gray-700',
   medium: 'bg-yellow-100 text-yellow-700',
   high: 'bg-orange-100 text-orange-700',
   urgent: 'bg-red-100 text-red-700'
 };
+
 const priorityLabels = {
   low: 'Baixa',
   medium: 'Média',
   high: 'Alta',
   urgent: 'Urgente'
 };
+
 export function KanbanCard({
   card,
   onEdit,

@@ -1,4 +1,3 @@
-
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import type { KanbanList as KanbanListType, KanbanCard as KanbanCardType } from '@/types/kanban'
 
 interface Subtask {
   id: string
@@ -58,11 +58,11 @@ interface KanbanList {
 }
 
 interface KanbanListProps {
-  list: KanbanList
+  list: KanbanListType
   onCreateCard: (listId: string) => void
-  onEditCard: (card: KanbanCard) => void
+  onEditCard: (card: KanbanCardType) => void
   onDeleteCard: (cardId: string) => void
-  onEditList: (list: KanbanList) => void
+  onEditList: (list: KanbanListType) => void
 }
 
 export function KanbanList({ list, onCreateCard, onEditCard, onDeleteCard, onEditList }: KanbanListProps) {
