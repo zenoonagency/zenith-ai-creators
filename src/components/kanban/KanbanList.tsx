@@ -12,14 +12,40 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+interface Subtask {
+  id: string
+  name: string
+  description: string
+  completed: boolean
+}
+
+interface Attachment {
+  id: string
+  name: string
+  type: 'image' | 'document' | 'video'
+  url: string
+}
+
+interface CustomField {
+  id: string
+  name: string
+  value: string
+}
+
 interface KanbanCard {
   id: string
   title: string
+  description?: string
   value: number
+  phone?: string
+  date?: string
+  time?: string
+  responsible?: string
   priority: 'low' | 'medium' | 'high' | 'urgent'
-  subtasks: { completed: number; total: number }
-  attachments: number
+  subtasks: Subtask[]
+  attachments: Attachment[]
   tags: string[]
+  customFields: CustomField[]
   listId: string
 }
 

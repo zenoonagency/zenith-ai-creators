@@ -4,8 +4,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { MoreHorizontal, Paperclip, CheckSquare, DollarSign, Edit, Trash2, Calendar, User, Phone } from 'lucide-react'
+import { MoreHorizontal, Paperclip, CheckSquare, DollarSign, Edit, Trash2 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -90,14 +89,12 @@ export function KanbanCard({ card, onEdit, onDelete, isDragging = false }: Kanba
   const handleEdit = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    console.log('Editing card:', card.id)
     onEdit(card)
   }
 
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    console.log('Deleting card:', card.id)
     onDelete(card.id)
   }
 
@@ -113,26 +110,21 @@ export function KanbanCard({ card, onEdit, onDelete, isDragging = false }: Kanba
     <Card 
       ref={setNodeRef} 
       style={style} 
-      className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow bg-white"
+      className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow bg-white border-l-4 border-l-gray-300"
     >
-      <CardContent className="p-3 space-y-3">
+      <CardContent className="p-3 space-y-2">
         <div className="flex items-start justify-between">
           <div {...attributes} {...listeners} className="flex-1">
-            <h3 className="font-medium text-sm text-gray-900 line-clamp-2">
+            <h3 className="font-medium text-sm text-gray-900">
               {card.title}
             </h3>
-            {card.description && (
-              <p className="text-xs text-gray-600 mt-1 line-clamp-2">
-                {card.description}
-              </p>
-            )}
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="h-6 w-6 p-0 z-10"
+                className="h-6 w-6 p-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
                 onClick={handleDropdownClick}
               >
                 <MoreHorizontal className="h-4 w-4" />
@@ -154,86 +146,60 @@ export function KanbanCard({ card, onEdit, onDelete, isDragging = false }: Kanba
           </DropdownMenu>
         </div>
 
-        <div className="space-y-2">
-          <Badge className={`text-xs px-2 py-1 ${priorityColors[card.priority]}`}>
+        {/* Prioridade */}
+        <div className="w-full">
+          <div className={`text-xs px-2 py-1 rounded ${priorityColors[card.priority]} w-full text-center`}>
             {priorityLabels[card.priority]}
-          </Badge>
-
-          <div className="flex items-center text-green-600 font-medium text-sm">
-            <DollarSign className="h-4 w-4 mr-1" />
-            R$ {card.value.toFixed(2)}
           </div>
+        </div>
 
-          {card.date && (
-            <div className="flex items-center text-blue-600 text-sm">
-              <Calendar className="h-4 w-4 mr-1" />
-              {new Date(card.date).toLocaleDateString('pt-BR')}
-              {card.time && ` às ${card.time}`}
-            </div>
-          )}
+        {/* Valor */}
+        <div className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium flex items-center justify-center w-full">
+          <DollarSign className="h-4 w-4 mr-1" />
+          R$ {card.value.toFixed(2)}
+        </div>
 
-          {card.responsible && (
-            <div className="flex items-center text-purple-600 text-sm">
-              <User className="h-4 w-4 mr-1" />
-              {card.responsible}
-            </div>
-          )}
-
-          {card.phone && (
-            <div className="flex items-center text-gray-600 text-sm">
-              <Phone className="h-4 w-4 mr-1" />
-              {card.phone}
-            </div>
-          )}
-
-          {totalSubtasks > 0 && (
-            <div className="flex items-center text-blue-600 text-sm">
+        {/* Subtarefas */}
+        {totalSubtasks > 0 && (
+          <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm flex items-center justify-between w-full">
+            <div className="flex items-center">
               <CheckSquare className="h-4 w-4 mr-1" />
               {completedSubtasks}/{totalSubtasks} subtarefas
-              <div className="ml-2 flex-1 bg-blue-100 rounded-full h-1">
-                <div 
-                  className="bg-blue-600 h-1 rounded-full" 
-                  style={{ width: `${totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0}%` }}
-                />
+            </div>
+            <div className="flex-1 ml-2 bg-blue-200 rounded-full h-1">
+              <div 
+                className="bg-blue-600 h-1 rounded-full" 
+                style={{ width: `${totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Anexos */}
+        {card.attachments && card.attachments.length > 0 && (
+          <div className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm flex items-center w-full">
+            <Paperclip className="h-4 w-4 mr-1" />
+            {card.attachments.length} anexo{card.attachments.length > 1 ? 's' : ''}
+          </div>
+        )}
+
+        {/* Tags */}
+        {card.tags && card.tags.length > 0 && (
+          <div className="flex gap-1 flex-wrap">
+            {card.tags.map((tag, index) => (
+              <div
+                key={index}
+                className={`text-xs px-2 py-1 rounded ${
+                  tag === 'Agente de IA' 
+                    ? 'bg-orange-100 text-orange-700' 
+                    : 'bg-blue-100 text-blue-700'
+                }`}
+              >
+                {tag}
               </div>
-            </div>
-          )}
-
-          {card.attachments && card.attachments.length > 0 && (
-            <div className="flex items-center text-blue-600 text-sm">
-              <Paperclip className="h-4 w-4 mr-1" />
-              {card.attachments.length} anexo{card.attachments.length > 1 ? 's' : ''}
-            </div>
-          )}
-
-          {card.tags && card.tags.length > 0 && (
-            <div className="flex gap-1 flex-wrap">
-              {card.tags.map((tag, index) => (
-                <Badge 
-                  key={index} 
-                  variant="outline" 
-                  className={`text-xs px-2 py-0.5 ${
-                    tag === 'Agente de IA' 
-                      ? 'bg-orange-100 text-orange-700 border-orange-200' 
-                      : 'bg-blue-100 text-blue-700 border-blue-200'
-                  }`}
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
-
-          {card.customFields && card.customFields.length > 0 && (
-            <div className="space-y-1">
-              {card.customFields.map((field) => (
-                <div key={field.id} className="text-xs text-gray-600">
-                  <span className="font-medium">{field.name}:</span> {field.value}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   )
