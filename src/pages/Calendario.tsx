@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useGoogleCalendar } from "@/hooks/useGoogleCalendar"
+import { GoogleCalendarViewer } from "@/components/GoogleCalendarViewer"
 
 interface Evento {
   id: string
@@ -20,35 +22,13 @@ interface Evento {
 
 const Calendario = () => {
   const [eventos, setEventos] = useState<Evento[]>([])
-  const [googleConnected, setGoogleConnected] = useState(false)
   const [showCreateEvent, setShowCreateEvent] = useState(false)
   const [titulo, setTitulo] = useState('')
   const [descricao, setDescricao] = useState('')
   const [data, setData] = useState('')
   const [hora, setHora] = useState('')
 
-  const handleConnectGoogle = () => {
-    // Simular conexão com Google Calendar
-    setGoogleConnected(true)
-    // Simular alguns eventos do Google Calendar
-    setEventos([
-      {
-        id: '1',
-        titulo: 'Reunião com Cliente',
-        descricao: 'Apresentação do projeto',
-        data: '2024-01-15',
-        hora: '14:00',
-        cor: '#3B82F6'
-      },
-      {
-        id: '2',
-        titulo: 'Call de Vendas',
-        data: '2024-01-16',
-        hora: '10:30',
-        cor: '#10B981'
-      }
-    ])
-  }
+  const { isSignedIn, isLoading, signIn, signOut } = useGoogleCalendar()
 
   const handleCreateEvent = (e: React.FormEvent) => {
     e.preventDefault()
@@ -74,20 +54,40 @@ const Calendario = () => {
     setEventos(eventos.filter(e => e.id !== id))
   }
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-gray-900">Calendário</h1>
+        <div className="flex items-center justify-center h-64">
+          <p>Carregando...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Calendário</h1>
         <div className="flex gap-2">
-          {googleConnected ? (
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-              <ExternalLink className="h-3 w-3 mr-1" />
-              Google Calendar Conectado
-            </Badge>
+          {isSignedIn ? (
+            <>
+              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                <ExternalLink className="h-3 w-3 mr-1" />
+                Google Calendar Conectado
+              </Badge>
+              <Button 
+                variant="outline" 
+                onClick={signOut}
+                className="border-red-200 text-red-700 hover:bg-red-50"
+              >
+                Desconectar
+              </Button>
+            </>
           ) : (
             <Button 
               variant="outline" 
-              onClick={handleConnectGoogle}
+              onClick={signIn}
               className="border-blue-200 text-blue-700 hover:bg-blue-50"
             >
               <ExternalLink className="h-4 w-4 mr-2" />
@@ -99,29 +99,48 @@ const Calendario = () => {
             onClick={() => setShowCreateEvent(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Novo Evento
+            Novo Evento Local
           </Button>
         </div>
       </div>
 
+      {/* Google Calendar Section */}
+      {isSignedIn && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ExternalLink className="h-5 w-5" />
+              Google Calendar
+            </CardTitle>
+            <CardDescription>
+              Seus eventos sincronizados do Google Calendar
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <GoogleCalendarViewer />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Local Events Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Calendário de Eventos
+            Eventos Locais
           </CardTitle>
           <CardDescription>
-            Gerencie seus compromissos e eventos
+            Eventos criados localmente nesta aplicação
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {!googleConnected ? (
+          {!isSignedIn ? (
             <div className="h-96 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg">
               <div className="text-center">
                 <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                 <p className="text-gray-500 mb-4">Conecte com Google Calendar para sincronizar seus eventos</p>
                 <Button 
-                  onClick={handleConnectGoogle}
+                  onClick={signIn}
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
@@ -165,7 +184,7 @@ const Calendario = () => {
               
               {eventos.length === 0 && (
                 <div className="text-center py-8 text-gray-400">
-                  <p>Nenhum evento encontrado</p>
+                  <p>Nenhum evento local encontrado</p>
                 </div>
               )}
             </div>
@@ -176,7 +195,7 @@ const Calendario = () => {
       <Dialog open={showCreateEvent} onOpenChange={setShowCreateEvent}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Criar Novo Evento</DialogTitle>
+            <DialogTitle>Criar Novo Evento Local</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreateEvent} className="space-y-4">
             <div>

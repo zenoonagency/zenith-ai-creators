@@ -1,668 +1,955 @@
-import { useState } from "react"
-import { Plus, Search, CheckCircle, Settings, Zap, Tag } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { KanbanBoard } from "@/components/kanban/KanbanBoard"
-import { CreateBoardDialog } from "@/components/kanban/CreateBoardDialog"
-import { CreateListDialog } from "@/components/kanban/CreateListDialog"
-import { CreateCardDialog } from "@/components/kanban/CreateCardDialog"
-import { EditCardDialog } from "@/components/kanban/EditCardDialog"
-import { EditListDialog } from "@/components/kanban/EditListDialog"
-import { BoardSelector } from "@/components/kanban/BoardSelector"
-import { CardSearch } from "@/components/kanban/CardSearch"
-import { CompletedCards } from "@/components/kanban/CompletedCards"
-import { AutomationDialog } from "@/components/kanban/AutomationDialog"
-import { BoardConfigDialog } from "@/components/kanban/BoardConfigDialog"
-import { TagManager } from "@/components/kanban/TagManager"
-import { useToast } from "@/hooks/use-toast"
+import { useState, useEffect, useCallback } from "react";
+import { Plus, Edit, Trash2, Move3D, MoreHorizontal, CheckSquare, Paperclip, DollarSign } from "lucide-react";
+import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent, PointerSensor, useSensor, useSensors, } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { Column } from "@tanstack/react-table";
+import { v4 as uuidv4 } from 'uuid';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { KanbanCard } from "@/components/kanban/KanbanCard";
+import { useToast } from "@/components/ui/use-toast";
+import { arrayMove } from "@dnd-kit/sortable";
+import { KanbanList } from "@/components/kanban/KanbanList";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { enUS } from 'date-fns/locale';
+import { set } from "date-fns";
+import { toast } from "@/components/ui/use-toast"
 
 interface Subtask {
-  id: string
-  name: string
-  description: string
-  completed: boolean
+  id: string;
+  name: string;
+  description: string;
+  completed: boolean;
 }
 
 interface Attachment {
-  id: string
-  name: string
-  type: 'image' | 'document' | 'video'
-  url: string
+  id: string;
+  name: string;
+  type: 'image' | 'document' | 'video';
+  url: string;
 }
 
 interface CustomField {
-  id: string
-  name: string
-  value: string
-}
-
-interface TagData {
-  id: string
-  name: string
-  color: string
+  id: string;
+  name: string;
+  value: string;
 }
 
 interface KanbanCard {
-  id: string
-  title: string
-  description?: string
-  value: number
-  phone?: string
-  date?: string
-  time?: string
-  responsible?: string
-  priority: 'low' | 'medium' | 'high' | 'urgent'
-  subtasks: Subtask[]
-  attachments: Attachment[]
-  tags: string[]
-  customFields: CustomField[]
-  listId: string
+  id: string;
+  title: string;
+  description?: string;
+  value: number;
+  phone?: string;
+  date?: string;
+  time?: string;
+  responsible?: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  subtasks: Subtask[];
+  attachments: Attachment[];
+  tags: string[];
+  customFields: CustomField[];
+  listId: string;
 }
 
 interface KanbanList {
-  id: string
-  title: string
-  cards: KanbanCard[]
-  totalValue: number
-  color?: string
+  id: string;
+  title: string;
+  cards: KanbanCard[];
 }
 
-interface Board {
-  id: string
-  name: string
-  lists: KanbanList[]
-  visibility?: 'everyone' | 'me' | 'specific'
-  completedListId?: string
+interface KanbanBoard {
+  id: string;
+  title: string;
+  lists: KanbanList[];
 }
-
-interface Automation {
-  id: string
-  trigger: string
-  sourceListId?: string
-  targetListId?: string
-  webhookUrl: string
-  active: boolean
-}
-
-const initialBoards: Board[] = [
-  {
-    id: "1",
-    name: "Vendas Principal",
-    lists: [
-      {
-        id: "pendente",
-        title: "Pendente",
-        totalValue: 500,
-        color: "#ef4444",
-        cards: [
-          {
-            id: "card-1",
-            title: "teste",
-            description: "Descrição do teste",
-            value: 500,
-            phone: "+55 (11) 99999-9999",
-            date: "2024-01-15",
-            time: "14:30",
-            responsible: "João Silva",
-            priority: "urgent",
-            subtasks: [
-              { id: "sub-1", name: "Tarefa 1", description: "Descrição", completed: true },
-              { id: "sub-2", name: "Tarefa 2", description: "Descrição", completed: false }
-            ],
-            attachments: [
-              { id: "att-1", name: "documento.pdf", type: "document", url: "#" }
-            ],
-            tags: ["Agente de IA", "Marketing"],
-            customFields: [
-              { id: "cf-1", name: "Origem", value: "Website" }
-            ],
-            listId: "pendente"
-          }
-        ]
-      },
-      {
-        id: "concluido",
-        title: "Concluído",
-        totalValue: 0,
-        color: "#22c55e",
-        cards: []
-      }
-    ],
-    completedListId: "concluido"
-  }
-]
 
 const GestaoFunil = () => {
-  const { toast } = useToast()
-  const [boards, setBoards] = useState<Board[]>(initialBoards)
-  const [currentBoardId, setCurrentBoardId] = useState("1")
-  const [automations, setAutomations] = useState<Automation[]>([])
-  const [tags, setTags] = useState<TagData[]>([
-    { id: "1", name: "Agente de IA", color: "#F59E0B" },
-    { id: "2", name: "Marketing", color: "#3B82F6" }
-  ])
-  
-  const [showCreateBoard, setShowCreateBoard] = useState(false)
-  const [showCreateList, setShowCreateList] = useState(false)
-  const [showCreateCard, setShowCreateCard] = useState(false)
-  const [showEditCard, setShowEditCard] = useState(false)
-  const [showEditList, setShowEditList] = useState(false)
-  const [showCardSearch, setShowCardSearch] = useState(false)
-  const [showCompletedCards, setShowCompletedCards] = useState(false)
-  const [showAutomations, setShowAutomations] = useState(false)
-  const [showBoardConfig, setShowBoardConfig] = useState(false)
-  const [showTagManager, setShowTagManager] = useState(false)
-  const [selectedListId, setSelectedListId] = useState<string>("")
-  const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null)
-  const [selectedList, setSelectedList] = useState<KanbanList | null>(null)
-
-  const currentBoard = boards.find(board => board.id === currentBoardId)
-
-  const triggerAutomations = async (trigger: string, cardData: KanbanCard, fromListId?: string, toListId?: string) => {
-    console.log('Checking automations for trigger:', trigger)
-    
-    const applicableAutomations = automations.filter(automation => {
-      if (!automation.active) return false
-      
-      if (automation.trigger === trigger) {
-        if (trigger === 'card_moved' && automation.sourceListId && automation.targetListId) {
-          return automation.sourceListId === fromListId && automation.targetListId === toListId
-        }
-        if (trigger === 'card_created_in_list' && automation.sourceListId) {
-          return automation.sourceListId === cardData.listId
-        }
-        return true
-      }
-      
-      return false
+  const [boards, setBoards] = useState<KanbanBoard[]>([
+    {
+      id: "board-1",
+      title: "Board 1",
+      lists: [
+        {
+          id: "list-1",
+          title: "Em Aberto",
+          cards: [
+            {
+              id: "card-1",
+              listId: "list-1",
+              title: "Landing Page",
+              description: "Criar a página de vendas",
+              value: 1000,
+              phone: "5511999999999",
+              date: "2024-01-20",
+              time: "10:00",
+              responsible: "João",
+              priority: "high",
+              subtasks: [
+                {
+                  id: "subtask-1",
+                  name: "Criar o layout",
+                  description: "Criar o layout da página",
+                  completed: true,
+                },
+                {
+                  id: "subtask-2",
+                  name: "Implementar o layout",
+                  description: "Implementar o layout da página",
+                  completed: false,
+                },
+              ],
+              attachments: [
+                {
+                  id: "attachment-1",
+                  name: "Design da página",
+                  type: "image",
+                  url: "https://via.placeholder.com/150",
+                },
+              ],
+              tags: ["Agente de IA"],
+              customFields: [
+                {
+                  id: "custom-field-1",
+                  name: "Status",
+                  value: "Em andamento",
+                },
+              ],
+            },
+            {
+              id: "card-2",
+              listId: "list-1",
+              title: "Página de Obrigado",
+              description: "Criar a página de obrigado",
+              value: 500,
+              phone: "5511999999999",
+              date: "2024-01-20",
+              time: "10:00",
+              responsible: "Maria",
+              priority: "medium",
+              subtasks: [
+                {
+                  id: "subtask-1",
+                  name: "Criar o layout",
+                  description: "Criar o layout da página",
+                  completed: true,
+                },
+                {
+                  id: "subtask-2",
+                  name: "Implementar o layout",
+                  description: "Implementar o layout da página",
+                  completed: false,
+                },
+              ],
+              attachments: [
+                {
+                  id: "attachment-1",
+                  name: "Design da página",
+                  type: "image",
+                  url: "https://via.placeholder.com/150",
+                },
+              ],
+              tags: ["Agente de IA"],
+              customFields: [
+                {
+                  id: "custom-field-1",
+                  name: "Status",
+                  value: "Em andamento",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "list-2",
+          title: "Em Desenvolvimento",
+          cards: [
+            {
+              id: "card-3",
+              listId: "list-2",
+              title: "Checkout",
+              description: "Criar o checkout",
+              value: 2000,
+              phone: "5511999999999",
+              date: "2024-01-20",
+              time: "10:00",
+              responsible: "José",
+              priority: "low",
+              subtasks: [
+                {
+                  id: "subtask-1",
+                  name: "Criar o layout",
+                  description: "Criar o layout da página",
+                  completed: true,
+                },
+                {
+                  id: "subtask-2",
+                  name: "Implementar o layout",
+                  description: "Implementar o layout da página",
+                  completed: false,
+                },
+              ],
+              attachments: [
+                {
+                  id: "attachment-1",
+                  name: "Design da página",
+                  type: "image",
+                  url: "https://via.placeholder.com/150",
+                },
+              ],
+              tags: ["Agente de IA"],
+              customFields: [
+                {
+                  id: "custom-field-1",
+                  name: "Status",
+                  value: "Em andamento",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "list-3",
+          title: "Concluído",
+          cards: [
+            {
+              id: "card-4",
+              listId: "list-3",
+              title: "Dashboard",
+              description: "Criar o dashboard",
+              value: 3000,
+              phone: "5511999999999",
+              date: "2024-01-20",
+              time: "10:00",
+              responsible: "Ana",
+              priority: "urgent",
+              subtasks: [
+                {
+                  id: "subtask-1",
+                  name: "Criar o layout",
+                  description: "Criar o layout da página",
+                  completed: true,
+                },
+                {
+                  id: "subtask-2",
+                  name: "Implementar o layout",
+                  description: "Implementar o layout da página",
+                  completed: false,
+                },
+              ],
+              attachments: [
+                {
+                  id: "attachment-1",
+                  name: "Design da página",
+                  type: "image",
+                  url: "https://via.placeholder.com/150",
+                },
+              ],
+              tags: ["Agente de IA"],
+              customFields: [
+                {
+                  id: "custom-field-1",
+                  name: "Status",
+                  value: "Em andamento",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ]);
+  const [activeBoard, setActiveBoard] = useState<KanbanBoard | null>(boards[0]);
+  const [activeList, setActiveList] = useState<KanbanList | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [showCreateBoard, setShowCreateBoard] = useState(false);
+  const [showCreateList, setShowCreateList] = useState(false);
+  const [showCreateCard, setShowCreateCard] = useState(false);
+  const [newBoardTitle, setNewBoardTitle] = useState("");
+  const [newListTitle, setNewListTitle] = useState("");
+  const [newCardTitle, setNewCardTitle] = useState("");
+  const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null);
+  const [selectedList, setSelectedList] = useState<KanbanList | null>(null);
+  const [cardTitle, setCardTitle] = useState("");
+  const [cardDescription, setCardDescription] = useState("");
+  const [cardValue, setCardValue] = useState(0);
+  const [cardPhone, setCardPhone] = useState("");
+  const [cardDate, setCardDate] = useState<Date | undefined>(undefined);
+  const [cardTime, setCardTime] = useState("");
+  const [cardResponsible, setCardResponsible] = useState("");
+  const [cardPriority, setCardPriority] = useState<"low" | "medium" | "high" | "urgent">("low");
+  const [subtasks, setSubtasks] = useState<Subtask[]>([]);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [storedBoards, setStoredBoards] = useLocalStorage<KanbanBoard[]>("kanban-boards", boards);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
     })
+  );
 
-    console.log('Found applicable automations:', applicableAutomations)
-
-    for (const automation of applicableAutomations) {
-      try {
-        console.log('Triggering webhook:', automation.webhookUrl)
-        
-        const webhookData = {
-          trigger: automation.trigger,
-          card: cardData,
-          fromListId,
-          toListId,
-          timestamp: new Date().toISOString()
-        }
-
-        const response = await fetch(automation.webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          mode: 'no-cors',
-          body: JSON.stringify(webhookData)
-        })
-
-        console.log('Webhook triggered successfully')
-        toast({
-          title: "Automação Executada",
-          description: `Webhook disparado para: ${automation.trigger}`,
-        })
-      } catch (error) {
-        console.error('Error triggering webhook:', error)
-        toast({
-          title: "Erro na Automação",
-          description: "Falha ao disparar webhook",
-          variant: "destructive",
-        })
-      }
+  useEffect(() => {
+    if (storedBoards) {
+      setBoards(storedBoards);
+      setActiveBoard(storedBoards[0] || null);
     }
-  }
+  }, [setBoards, storedBoards]);
 
-  const handleCreateBoard = (name: string) => {
-    const newBoard: Board = {
-      id: Date.now().toString(),
-      name,
-      lists: []
-    }
-    setBoards([...boards, newBoard])
-    setCurrentBoardId(newBoard.id)
-  }
+  useEffect(() => {
+    setStoredBoards(boards);
+  }, [boards, setStoredBoards]);
 
-  const handleCreateList = (title: string) => {
-    if (!currentBoard) return
-    
-    const newList: KanbanList = {
-      id: Date.now().toString(),
-      title,
-      cards: [],
-      totalValue: 0
+  useEffect(() => {
+    if (selectedCard) {
+      setCardTitle(selectedCard.title);
+      setCardDescription(selectedCard.description || "");
+      setCardValue(selectedCard.value);
+      setCardPhone(selectedCard.phone || "");
+      setCardDate(selectedCard.date ? new Date(selectedCard.date) : undefined);
+      setCardTime(selectedCard.time || "");
+      setCardResponsible(selectedCard.responsible || "");
+      setCardPriority(selectedCard.priority);
+      setSubtasks(selectedCard.subtasks || []);
+      setAttachments(selectedCard.attachments || []);
+      setTags(selectedCard.tags || []);
+      setCustomFields(selectedCard.customFields || []);
+    } else {
+      setCardTitle("");
+      setCardDescription("");
+      setCardValue(0);
+      setCardPhone("");
+      setCardDate(undefined);
+      setCardTime("");
+      setCardResponsible("");
+      setCardPriority("low");
+      setSubtasks([]);
+      setAttachments([]);
+      setTags([]);
+      setCustomFields([]);
     }
-    
-    const updatedBoard = {
-      ...currentBoard,
-      lists: [...currentBoard.lists, newList]
-    }
-    
-    setBoards(boards.map(board => 
-      board.id === currentBoardId ? updatedBoard : board
-    ))
-  }
+  }, [selectedCard]);
 
-  const handleEditList = (listId: string, title: string, color: string) => {
-    if (!currentBoard) return
-    
-    const updatedBoard = {
-      ...currentBoard,
-      lists: currentBoard.lists.map(list => 
-        list.id === listId 
-          ? { ...list, title, color }
-          : list
-      )
-    }
-    
-    setBoards(boards.map(board => 
-      board.id === currentBoardId ? updatedBoard : board
-    ))
-  }
+  const handleDragStart = (event: DragStartEvent) => {
+    setIsDragging(true);
+    console.log("Drag Start", event);
+  };
 
-  const handleDeleteList = (listId: string) => {
-    if (!currentBoard) return
-    
-    const updatedBoard = {
-      ...currentBoard,
-      lists: currentBoard.lists.filter(list => list.id !== listId)
-    }
-    
-    setBoards(boards.map(board => 
-      board.id === currentBoardId ? updatedBoard : board
-    ))
-  }
+  const handleDragOver = (event: DragOverEvent) => {
+    console.log("Drag Over", event);
+  };
 
-  const handleCreateCard = async (cardData: Omit<KanbanCard, 'id' | 'listId'>) => {
-    if (!currentBoard || !selectedListId) return
-    
-    const newCard: KanbanCard = {
-      ...cardData,
-      id: Date.now().toString(),
-      listId: selectedListId
-    }
-    
-    const updatedBoard = {
-      ...currentBoard,
-      lists: currentBoard.lists.map(list => 
-        list.id === selectedListId 
-          ? { 
-              ...list, 
-              cards: [...list.cards, newCard],
-              totalValue: list.totalValue + cardData.value
-            }
-          : list
-      )
-    }
-    
-    setBoards(boards.map(board => 
-      board.id === currentBoardId ? updatedBoard : board
-    ))
+  const handleDragEnd = (event: DragEndEvent) => {
+    setIsDragging(false);
+    const { active, over } = event;
 
-    await triggerAutomations('card_created', newCard)
-    await triggerAutomations('card_created_in_list', newCard)
-  }
+    if (!over) return;
 
-  const handleEditCard = async (cardData: Omit<KanbanCard, 'id' | 'listId'>) => {
-    if (!currentBoard || !selectedCard) return
-    
-    const updatedCard = {
-      ...selectedCard,
-      ...cardData
-    }
-    
-    const updatedBoard = {
-      ...currentBoard,
-      lists: currentBoard.lists.map(list => ({
-        ...list,
-        cards: list.cards.map(card => 
-          card.id === selectedCard.id ? updatedCard : card
-        ),
-        totalValue: list.cards.reduce((total, card) => 
-          total + (card.id === selectedCard.id ? cardData.value : card.value), 0
-        )
-      }))
-    }
-    
-    setBoards(boards.map(board => 
-      board.id === currentBoardId ? updatedBoard : board
-    ))
-  }
+    if (active?.id === over?.id) return;
 
-  const handleDeleteCard = (cardId: string) => {
-    if (!currentBoard) return
-    
-    console.log('Deleting card:', cardId)
-    
-    const updatedBoard = {
-      ...currentBoard,
-      lists: currentBoard.lists.map(list => ({
-        ...list,
-        cards: list.cards.filter(card => card.id !== cardId),
-        totalValue: list.cards
-          .filter(card => card.id !== cardId)
-          .reduce((total, card) => total + card.value, 0)
-      }))
-    }
-    
-    setBoards(boards.map(board => 
-      board.id === currentBoardId ? updatedBoard : board
-    ))
+    const activeId = active?.id as string;
+    const overId = over?.id as string;
 
-    toast({
-      title: "Card Excluído",
-      description: "O card foi removido com sucesso.",
-    })
-  }
+    const activeList = activeBoard?.lists.find((list) =>
+      list.cards.find((card) => card.id === activeId)
+    );
+    const overList = activeBoard?.lists.find((list) =>
+      list.cards.find((card) => card.id === overId)
+    );
 
-  const handleMoveCard = async (cardId: string, fromListId: string, toListId: string) => {
-    if (!currentBoard) return
-    
-    console.log('Moving card:', cardId, 'from:', fromListId, 'to:', toListId)
-    
-    const card = currentBoard.lists
-      .find(list => list.id === fromListId)
-      ?.cards.find(card => card.id === cardId)
-    
-    if (!card) return
-    
-    const updatedBoard = {
-      ...currentBoard,
-      lists: currentBoard.lists.map(list => {
-        if (list.id === fromListId) {
+    if (!activeList || !overList) return;
+
+    if (activeList.id === overList.id) {
+      const activeIndex = activeList.cards.findIndex((card) => card.id === activeId);
+      const overIndex = overList.cards.findIndex((card) => card.id === overId);
+
+      const newLists = activeBoard?.lists.map((list) => {
+        if (list.id === activeList.id) {
           return {
             ...list,
-            cards: list.cards.filter(c => c.id !== cardId),
-            totalValue: list.totalValue - card.value
-          }
+            cards: arrayMove(list.cards, activeIndex, overIndex),
+          };
         }
-        if (list.id === toListId) {
+        return list;
+      });
+
+      setBoards(
+        boards.map((board) => {
+          if (board.id === activeBoard?.id) {
+            return { ...board, lists: newLists || [] };
+          }
+          return board;
+        })
+      );
+    } else {
+      const activeIndex = activeList.cards.findIndex((card) => card.id === activeId);
+      const overIndex = overList.cards.findIndex((card) => card.id === overId);
+
+      const cardToMove = activeList.cards[activeIndex];
+
+      const newLists = activeBoard?.lists.map((list) => {
+        if (list.id === activeList.id) {
           return {
             ...list,
-            cards: [...list.cards, { ...card, listId: toListId }],
-            totalValue: list.totalValue + card.value
-          }
+            cards: list.cards.filter((card) => card.id !== activeId),
+          };
         }
-        return list
+        if (list.id === overList.id) {
+          return {
+            ...list,
+            cards: [
+              ...list.cards.slice(0, overIndex),
+              { ...cardToMove, listId: overList.id },
+              ...list.cards.slice(overIndex),
+            ],
+          };
+        }
+        return list;
+      });
+
+      setBoards(
+        boards.map((board) => {
+          if (board.id === activeBoard?.id) {
+            return { ...board, lists: newLists || [] };
+          }
+          return board;
+        })
+      );
+    }
+  };
+
+  const handleDragEndList = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    if (active?.id === over?.id) return;
+
+    const activeId = active?.id as string;
+    const overId = over?.id as string;
+
+    const activeIndex = activeBoard?.lists.findIndex((list) => list.id === activeId);
+    const overIndex = activeBoard?.lists.findIndex((list) => list.id === overId);
+
+    if (activeIndex === undefined || overIndex === undefined) return;
+
+    const newLists = arrayMove(activeBoard?.lists, activeIndex, overIndex);
+
+    setBoards(
+      boards.map((board) => {
+        if (board.id === activeBoard?.id) {
+          return { ...board, lists: newLists || [] };
+        }
+        return board;
       })
+    );
+  };
+
+  const handleCreateBoard = () => {
+    if (newBoardTitle) {
+      const newBoard: KanbanBoard = {
+        id: uuidv4(),
+        title: newBoardTitle,
+        lists: [],
+      };
+      setBoards([...boards, newBoard]);
+      setNewBoardTitle("");
+      setShowCreateBoard(false);
     }
-    
-    setBoards(boards.map(board => 
-      board.id === currentBoardId ? updatedBoard : board
-    ))
+  };
 
-    await triggerAutomations('card_moved', { ...card, listId: toListId }, fromListId, toListId)
-  }
+  const handleCreateList = () => {
+    if (newListTitle && activeBoard) {
+      const newList: KanbanList = {
+        id: uuidv4(),
+        title: newListTitle,
+        cards: [],
+      };
 
-  const handleDeleteBoard = () => {
-    if (boards.length === 1) return
-    
-    const updatedBoards = boards.filter(board => board.id !== currentBoardId)
-    setBoards(updatedBoards)
-    setCurrentBoardId(updatedBoards[0].id)
-  }
+      const updatedBoards = boards.map((board) => {
+        if (board.id === activeBoard.id) {
+          return { ...board, lists: [...board.lists, newList] };
+        }
+        return board;
+      });
 
-  const handleDuplicateBoard = () => {
-    if (!currentBoard) return
-    
-    const duplicatedBoard: Board = {
-      ...currentBoard,
-      id: Date.now().toString(),
-      name: `${currentBoard.name} (Cópia)`
+      setBoards(updatedBoards);
+      setNewListTitle("");
+      setShowCreateList(false);
     }
-    
-    setBoards([...boards, duplicatedBoard])
-    setCurrentBoardId(duplicatedBoard.id)
-  }
+  };
 
-  const handleSetCompletedList = (listId: string) => {
-    if (!currentBoard) return
-    
-    const updatedBoard = {
-      ...currentBoard,
-      completedListId: listId
+  const handleCreateCard = () => {
+    if (newCardTitle && activeList) {
+      const newCard: KanbanCard = {
+        id: uuidv4(),
+        listId: activeList.id,
+        title: newCardTitle,
+        description: "",
+        value: 0,
+        phone: "",
+        date: "",
+        time: "",
+        responsible: "",
+        priority: "low",
+        subtasks: [],
+        attachments: [],
+        tags: [],
+        customFields: [],
+      };
+
+      const updatedBoards = boards.map((board) => {
+        if (board.id === activeBoard?.id) {
+          const updatedLists = board.lists.map((list) => {
+            if (list.id === activeList.id) {
+              return { ...list, cards: [...list.cards, newCard] };
+            }
+            return list;
+          });
+          return { ...board, lists: updatedLists };
+        }
+        return board;
+      });
+
+      setBoards(updatedBoards);
+      setNewCardTitle("");
+      setShowCreateCard(false);
     }
-    
-    setBoards(boards.map(board => 
-      board.id === currentBoardId ? updatedBoard : board
-    ))
-  }
+  };
 
-  const handleUpdateBoard = (boardId: string, updates: Partial<Board>) => {
-    setBoards(boards.map(board => 
-      board.id === boardId ? { ...board, ...updates } : board
-    ))
-  }
+  const handleUpdateCard = () => {
+    if (selectedCard && activeBoard) {
+      const updatedCard: KanbanCard = {
+        ...selectedCard,
+        title: cardTitle,
+        description: cardDescription,
+        value: cardValue,
+        phone: cardPhone,
+        date: cardDate ? format(cardDate, 'yyyy-MM-dd') : "",
+        time: cardTime,
+        responsible: cardResponsible,
+        priority: cardPriority,
+        subtasks: subtasks,
+        attachments: attachments,
+        tags: tags,
+        customFields: customFields,
+      };
 
-  const handleCreateAutomation = (automationData: Omit<Automation, 'id'>) => {
-    const newAutomation: Automation = {
-      ...automationData,
-      id: Date.now().toString()
+      const updatedBoards = boards.map((board) => {
+        if (board.id === activeBoard.id) {
+          const updatedLists = board.lists.map((list) => {
+            if (list.id === updatedCard.listId) {
+              const updatedCards = list.cards.map((card) => {
+                if (card.id === updatedCard.id) {
+                  return updatedCard;
+                }
+                return card;
+              });
+              return { ...list, cards: updatedCards };
+            }
+            return list;
+          });
+          return { ...board, lists: updatedLists };
+        }
+        return board;
+      });
+
+      setBoards(updatedBoards);
+      setSelectedCard(null);
     }
-    setAutomations([...automations, newAutomation])
-    
-    toast({
-      title: "Automação Criada",
-      description: "A automação foi configurada com sucesso.",
-    })
-  }
+  };
 
-  const handleCreateTag = (tagData: Omit<TagData, 'id'>) => {
-    const newTag: TagData = {
-      ...tagData,
-      id: Date.now().toString()
+  const handleDeleteBoard = (boardId: string) => {
+    setBoards(boards.filter((board) => board.id !== boardId));
+    if (activeBoard?.id === boardId) {
+      setActiveBoard(boards[0] || null);
     }
-    setTags([...tags, newTag])
-    
-    toast({
-      title: "Marcador Criado",
-      description: "O marcador foi criado com sucesso.",
-    })
-  }
+  };
 
-  const handleDeleteTag = (tagId: string) => {
-    setTags(tags.filter(tag => tag.id !== tagId))
-    
-    toast({
-      title: "Marcador Excluído",
-      description: "O marcador foi removido com sucesso.",
-    })
-  }
+  const handleDeleteList = (boardId: string, listId: string) => {
+    setBoards(boards.map(board => {
+      if (board.id === boardId) {
+        return {
+          ...board,
+          lists: board.lists.filter(list => list.id !== listId)
+        };
+      }
+      return board;
+    }));
+  };
+
+  const handleEditCard = (card: KanbanCard) => {
+    const cardWithDefaults = {
+      ...card,
+      customFields: card.customFields || [],
+      subtasks: Array.isArray(card.subtasks) ? card.subtasks : []
+    };
+    setSelectedCard(cardWithDefaults);
+  };
+
+  const handleDeleteCard = (boardId: string, listId: string, cardId: string) => {
+    setBoards(boards.map(board => {
+      if (board.id === boardId) {
+        return {
+          ...board,
+          lists: board.lists.map(list => {
+            if (list.id === listId) {
+              return {
+                ...list,
+                cards: list.cards.filter(card => card.id !== cardId)
+              };
+            }
+            return list;
+          })
+        };
+      }
+      return board;
+    }));
+  };
+
+  const handleEditList = (list: KanbanList) => {
+    const listWithDefaults = {
+      ...list,
+      cards: list.cards.map(card => ({
+        ...card,
+        customFields: card.customFields || [],
+        subtasks: Array.isArray(card.subtasks) ? card.subtasks : []
+      }))
+    };
+    setSelectedList(listWithDefaults);
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Gestão de funil</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Gestão de Funil</h1>
         <div className="flex gap-2">
-          <BoardSelector
-            boards={boards}
-            currentBoardId={currentBoardId}
-            onSelectBoard={setCurrentBoardId}
-            onCreateBoard={() => setShowCreateBoard(true)}
-          />
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowCompletedCards(true)}
-          >
-            <CheckCircle className="h-4 w-4 mr-1" />
-            Lista de Concluídos
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowCardSearch(true)}
-          >
-            <Search className="h-4 w-4 mr-1" />
-            Procurar Cartão
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowTagManager(true)}
-          >
-            <Tag className="h-4 w-4 mr-1" />
-            Marcadores
-          </Button>
-          <Button 
-            className="bg-purple-600 hover:bg-purple-700" 
-            size="sm"
-            onClick={() => setShowAutomations(true)}
-          >
-            <Zap className="h-4 w-4 mr-1" />
-            Criar Automação
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowBoardConfig(true)}
-          >
-            <Settings className="h-4 w-4 mr-1" />
-            Configurar Quadro
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                {activeBoard ? activeBoard.title : "Selecionar Funil"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[200px]">
+              {boards.map((board) => (
+                <DropdownMenuItem
+                  key={board.id}
+                  onClick={() => setActiveBoard(board)}
+                >
+                  {board.title}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuItem onClick={() => setShowCreateBoard(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Novo Funil
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      <div className="flex gap-2">
-        <Button 
-          className="bg-purple-600 hover:bg-purple-700" 
-          size="sm"
-          onClick={() => setShowCreateBoard(true)}
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Novo Quadro
-        </Button>
-        <Button variant="outline" size="sm">
-          Editar
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={handleDuplicateBoard}
-        >
-          Duplicar
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="text-red-600 hover:text-red-700"
-          onClick={handleDeleteBoard}
-          disabled={boards.length === 1}
-        >
-          Excluir
-        </Button>
-      </div>
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex gap-4">
+          <ScrollArea className="w-full">
+            <div className="flex gap-4 w-fit">
+              <SortableContext
+                items={activeBoard ? activeBoard.lists.map((list) => list.id) : []}
+                strategy={verticalListSortingStrategy}
+              >
+                {activeBoard &&
+                  activeBoard.lists.map((list) => (
+                    <KanbanList
+                      key={list.id}
+                      list={list}
+                      onEdit={() => handleEditList(list)}
+                      onDelete={(listId) => handleDeleteList(activeBoard.id, listId)}
+                      onEditCard={handleEditCard}
+                      onDeleteCard={(cardId) => handleDeleteCard(activeBoard.id, list.id, cardId)}
+                    />
+                  ))}
+              </SortableContext>
 
-      {currentBoard && (
-        <KanbanBoard
-          board={currentBoard}
-          onMoveCard={handleMoveCard}
-          onCreateList={() => setShowCreateList(true)}
-          onCreateCard={(listId) => {
-            setSelectedListId(listId)
-            setShowCreateCard(true)
-          }}
-          onEditCard={(card) => {
-            setSelectedCard(card)
-            setShowEditCard(true)
-          }}
-          onDeleteCard={handleDeleteCard}
-          onEditList={(list) => {
-            setSelectedList(list)
-            setShowEditList(true)
-          }}
-        />
-      )}
+              <Card className="w-80">
+                <CardContent className="p-4">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start hover:bg-gray-100"
+                    onClick={() => {
+                      setActiveList(null);
+                      setShowCreateList(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Lista
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </ScrollArea>
+        </div>
+      </DndContext>
 
-      <CreateBoardDialog
-        open={showCreateBoard}
-        onOpenChange={setShowCreateBoard}
-        onCreateBoard={handleCreateBoard}
-      />
+      <Dialog open={showCreateBoard} onOpenChange={setShowCreateBoard}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar Novo Funil</DialogTitle>
+            <DialogDescription>
+              Dê um nome para o seu novo funil.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Título
+              </Label>
+              <Input
+                id="name"
+                value={newBoardTitle}
+                onChange={(e) => setNewBoardTitle(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button type="submit" onClick={handleCreateBoard}>
+              Criar Funil
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-      <CreateListDialog
-        open={showCreateList}
-        onOpenChange={setShowCreateList}
-        onCreateList={handleCreateList}
-      />
+      <Dialog open={showCreateList} onOpenChange={setShowCreateList}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar Nova Lista</DialogTitle>
+            <DialogDescription>
+              Dê um nome para a sua nova lista.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Título
+              </Label>
+              <Input
+                id="name"
+                value={newListTitle}
+                onChange={(e) => setNewListTitle(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button type="submit" onClick={handleCreateList}>
+              Criar Lista
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-      <CreateCardDialog
-        open={showCreateCard}
-        onOpenChange={setShowCreateCard}
-        onCreateCard={handleCreateCard}
-        availableTags={tags}
-        onCreateTag={() => setShowTagManager(true)}
-      />
+      <Dialog open={showCreateCard} onOpenChange={setShowCreateCard}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Criar Novo Card</DialogTitle>
+            <DialogDescription>
+              Dê um título para o seu novo card.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Título
+              </Label>
+              <Input
+                id="name"
+                value={newCardTitle}
+                onChange={(e) => setNewCardTitle(e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button type="submit" onClick={handleCreateCard}>
+              Criar Card
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-      {selectedCard && (
-        <EditCardDialog
-          open={showEditCard}
-          onOpenChange={setShowEditCard}
-          card={selectedCard}
-          onEditCard={handleEditCard}
-          availableTags={tags}
-          onCreateTag={() => setShowTagManager(true)}
-        />
-      )}
-
-      {selectedList && (
-        <EditListDialog
-          open={showEditList}
-          onOpenChange={setShowEditList}
-          list={selectedList}
-          onEditList={handleEditList}
-          onDeleteList={handleDeleteList}
-        />
-      )}
-
-      <TagManager
-        open={showTagManager}
-        onOpenChange={setShowTagManager}
-        tags={tags}
-        onCreateTag={handleCreateTag}
-        onDeleteTag={handleDeleteTag}
-      />
-
-      {currentBoard && (
-        <>
-          <CardSearch
-            open={showCardSearch}
-            onOpenChange={setShowCardSearch}
-            board={currentBoard}
-            onCardSelect={(card) => {
-              setSelectedCard(card)
-              setShowEditCard(true)
-            }}
-          />
-
-          <CompletedCards
-            open={showCompletedCards}
-            onOpenChange={setShowCompletedCards}
-            board={currentBoard}
-            completedListId={currentBoard.completedListId}
-            onSetCompletedList={handleSetCompletedList}
-          />
-
-          <AutomationDialog
-            open={showAutomations}
-            onOpenChange={setShowAutomations}
-            board={currentBoard}
-            automations={automations}
-            onCreateAutomation={handleCreateAutomation}
-          />
-
-          <BoardConfigDialog
-            open={showBoardConfig}
-            onOpenChange={setShowBoardConfig}
-            board={currentBoard}
-            onUpdateBoard={handleUpdateBoard}
-          />
-        </>
-      )}
+      <Dialog open={!!selectedCard} onOpenChange={() => setSelectedCard(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar Card</DialogTitle>
+            <DialogDescription>
+              Edite as informações do seu card.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="title" className="text-right">
+                Título
+              </Label>
+              <Input
+                id="title"
+                value={cardTitle}
+                onChange={(e) => setCardTitle(e.target.value)}
+                className="col-span-2"
+              />
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Descrição
+              </Label>
+              <Textarea
+                id="description"
+                value={cardDescription}
+                onChange={(e) => setCardDescription(e.target.value)}
+                className="col-span-2"
+              />
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="value" className="text-right">
+                Valor
+              </Label>
+              <Input
+                type="number"
+                id="value"
+                value={cardValue}
+                onChange={(e) => setCardValue(Number(e.target.value))}
+                className="col-span-2"
+              />
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="phone" className="text-right">
+                Telefone
+              </Label>
+              <Input
+                id="phone"
+                value={cardPhone}
+                onChange={(e) => setCardPhone(e.target.value)}
+                className="col-span-2"
+              />
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="date" className="text-right">
+                Data
+              </Label>
+              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !cardDate && "text-muted-foreground"
+                    )}
+                  >
+                    {cardDate ? format(cardDate, "PPP", { locale: enUS }) : (
+                      <span>Pick a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={cardDate}
+                    onSelect={setCardDate}
+                    disabled={(date) =>
+                      date > new Date()
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="time" className="text-right">
+                Hora
+              </Label>
+              <Input
+                type="time"
+                id="time"
+                value={cardTime}
+                onChange={(e) => setCardTime(e.target.value)}
+                className="col-span-2"
+              />
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="responsible" className="text-right">
+                Responsável
+              </Label>
+              <Input
+                id="responsible"
+                value={cardResponsible}
+                onChange={(e) => setCardResponsible(e.target.value)}
+                className="col-span-2"
+              />
+            </div>
+            <div className="grid grid-cols-3 items-center gap-4">
+              <Label htmlFor="priority" className="text-right">
+                Prioridade
+              </Label>
+              <select
+                id="priority"
+                value={cardPriority}
+                onChange={(e) =>
+                  setCardPriority(e.target.value as "low" | "medium" | "high" | "urgent")
+                }
+                className="col-span-2 rounded-md border-gray-200"
+              >
+                <option value="low">Baixa</option>
+                <option value="medium">Média</option>
+                <option value="high">Alta</option>
+                <option value="urgent">Urgente</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex justify-end">
+            <Button type="submit" onClick={handleUpdateCard}>
+              Salvar Card
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
-  )
-}
+  );
+};
 
-export default GestaoFunil
+export default GestaoFunil;
