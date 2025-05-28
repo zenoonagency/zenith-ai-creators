@@ -1,13 +1,15 @@
 
 import { useState } from "react"
-import { Plus, MoreHorizontal, Paperclip, CheckSquare, DollarSign } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Plus, Search, CheckCircle, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { KanbanBoard } from "@/components/kanban/KanbanBoard"
 import { CreateBoardDialog } from "@/components/kanban/CreateBoardDialog"
 import { CreateListDialog } from "@/components/kanban/CreateListDialog"
 import { CreateCardDialog } from "@/components/kanban/CreateCardDialog"
 import { EditCardDialog } from "@/components/kanban/EditCardDialog"
+import { BoardSelector } from "@/components/kanban/BoardSelector"
+import { CardSearch } from "@/components/kanban/CardSearch"
+import { CompletedCards } from "@/components/kanban/CompletedCards"
 
 interface KanbanCard {
   id: string
@@ -54,6 +56,12 @@ const initialBoards: Board[] = [
             listId: "pendente"
           }
         ]
+      },
+      {
+        id: "concluido",
+        title: "Concluído",
+        totalValue: 0,
+        cards: []
       }
     ]
   }
@@ -66,6 +74,8 @@ const GestaoFunil = () => {
   const [showCreateList, setShowCreateList] = useState(false)
   const [showCreateCard, setShowCreateCard] = useState(false)
   const [showEditCard, setShowEditCard] = useState(false)
+  const [showCardSearch, setShowCardSearch] = useState(false)
+  const [showCompletedCards, setShowCompletedCards] = useState(false)
   const [selectedListId, setSelectedListId] = useState<string>("")
   const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null)
 
@@ -234,19 +244,33 @@ const GestaoFunil = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900">Gestão de funil</h1>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            Escolher Quadro
-          </Button>
-          <Button variant="outline" size="sm">
+          <BoardSelector
+            boards={boards}
+            currentBoardId={currentBoardId}
+            onSelectBoard={setCurrentBoardId}
+            onCreateBoard={() => setShowCreateBoard(true)}
+          />
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowCompletedCards(true)}
+          >
+            <CheckCircle className="h-4 w-4 mr-1" />
             Lista de Concluídos
           </Button>
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowCardSearch(true)}
+          >
+            <Search className="h-4 w-4 mr-1" />
             Procurar Cartão
           </Button>
           <Button className="bg-purple-600 hover:bg-purple-700" size="sm">
             Criar Automação
           </Button>
           <Button variant="outline" size="sm">
+            <Settings className="h-4 w-4 mr-1" />
             Configurar Quadro
           </Button>
         </div>
@@ -276,6 +300,7 @@ const GestaoFunil = () => {
           size="sm" 
           className="text-red-600 hover:text-red-700"
           onClick={handleDeleteBoard}
+          disabled={boards.length === 1}
         >
           Excluir
         </Button>
@@ -323,6 +348,26 @@ const GestaoFunil = () => {
           card={selectedCard}
           onEditCard={handleEditCard}
         />
+      )}
+
+      {currentBoard && (
+        <>
+          <CardSearch
+            open={showCardSearch}
+            onOpenChange={setShowCardSearch}
+            board={currentBoard}
+            onCardSelect={(card) => {
+              setSelectedCard(card)
+              setShowEditCard(true)
+            }}
+          />
+
+          <CompletedCards
+            open={showCompletedCards}
+            onOpenChange={setShowCompletedCards}
+            board={currentBoard}
+          />
+        </>
       )}
     </div>
   )
