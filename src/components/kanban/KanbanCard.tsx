@@ -94,7 +94,7 @@ export function KanbanCard({
   const completedSubtasks = card.subtasks?.filter(task => task.completed).length || 0;
   const totalSubtasks = card.subtasks?.length || 0;
   return <Card ref={setNodeRef} style={style} className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow bg-white border-l-4 border-l-gray-300">
-      <CardContent className="p-3 space-y-2 rounded-sm">
+      <CardContent className="p-3 space-y-2 rounded-none">
         <div className="flex items-start justify-between">
           <div {...attributes} {...listeners} className="flex-1">
             <h3 className="font-medium text-sm text-gray-900">
