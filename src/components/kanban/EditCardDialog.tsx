@@ -123,9 +123,9 @@ export function EditCardDialog({ open, onOpenChange, card, onEditCard, available
     }])
   }
 
-  const updateSubtask = (id: string, field: keyof Subtask, value: any) => {
+  const updateSubtask = (id: string, fieldName: keyof Subtask, value: any) => {
     setSubtasks(subtasks.map(task => 
-      task.id === id ? { ...task, [field]: value } : task
+      task.id === id ? { ...task, [fieldName]: value } : task
     ))
   }
 
@@ -141,9 +141,9 @@ export function EditCardDialog({ open, onOpenChange, card, onEditCard, available
     }])
   }
 
-  const updateCustomField = (id: string, field: keyof CustomField, value: string) => {
+  const updateCustomField = (id: string, fieldName: keyof CustomField, value: string) => {
     setCustomFields(customFields.map(field => 
-      field.id === id ? { ...field, [field]: value } : field
+      field.id === id ? { ...field, [fieldName]: value } : field
     ))
   }
 

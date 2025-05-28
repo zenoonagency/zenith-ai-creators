@@ -1,4 +1,3 @@
-
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -120,9 +119,9 @@ export function CreateCardDialog({ open, onOpenChange, onCreateCard, availableTa
     }])
   }
 
-  const updateSubtask = (id: string, field: keyof Subtask, value: any) => {
+  const updateSubtask = (id: string, fieldName: keyof Subtask, value: any) => {
     setSubtasks(subtasks.map(task => 
-      task.id === id ? { ...task, [field]: value } : task
+      task.id === id ? { ...task, [fieldName]: value } : task
     ))
   }
 
@@ -138,9 +137,9 @@ export function CreateCardDialog({ open, onOpenChange, onCreateCard, availableTa
     }])
   }
 
-  const updateCustomField = (id: string, field: keyof CustomField, value: string) => {
+  const updateCustomField = (id: string, fieldName: keyof CustomField, value: string) => {
     setCustomFields(customFields.map(field => 
-      field.id === id ? { ...field, [field]: value } : field
+      field.id === id ? { ...field, [fieldName]: value } : field
     ))
   }
 
