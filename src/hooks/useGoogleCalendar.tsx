@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react'
-import { gapi } from 'gapi-script'
 
 const CLIENT_ID = '632529926340-rm8d9pfgeu2pk4ghkla3pcmhia89664i.apps.googleusercontent.com'
 const API_KEY = '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'
@@ -21,44 +20,69 @@ interface GoogleEvent {
   }
 }
 
+declare global {
+  interface Window {
+    gapi: any
+  }
+}
+
 export const useGoogleCalendar = () => {
   const [isSignedIn, setIsSignedIn] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [events, setEvents] = useState<GoogleEvent[]>([])
 
   useEffect(() => {
+    const initializeGapi = async () => {
+      try {
+        // Load the GAPI script if not already loaded
+        if (!window.gapi) {
+          const script = document.createElement('script')
+          script.src = 'https://apis.google.com/js/api.js'
+          script.onload = () => {
+            loadGapi()
+          }
+          document.body.appendChild(script)
+        } else {
+          loadGapi()
+        }
+      } catch (error) {
+        console.error('Error loading GAPI script:', error)
+        setIsLoading(false)
+      }
+    }
+
+    const loadGapi = () => {
+      window.gapi.load('auth2:client', async () => {
+        try {
+          await window.gapi.client.init({
+            apiKey: API_KEY,
+            clientId: CLIENT_ID,
+            discoveryDocs: [DISCOVERY_DOC],
+            scope: SCOPES
+          })
+
+          const authInstance = window.gapi.auth2.getAuthInstance()
+          setIsSignedIn(authInstance.isSignedIn.get())
+          setIsLoading(false)
+
+          authInstance.isSignedIn.listen(setIsSignedIn)
+
+          if (authInstance.isSignedIn.get()) {
+            loadEvents()
+          }
+        } catch (error) {
+          console.error('Error initializing GAPI:', error)
+          setIsLoading(false)
+        }
+      })
+    }
+
     initializeGapi()
   }, [])
 
-  const initializeGapi = async () => {
-    try {
-      await gapi.load('auth2:client', async () => {
-        await gapi.client.init({
-          apiKey: API_KEY,
-          clientId: CLIENT_ID,
-          discoveryDocs: [DISCOVERY_DOC],
-          scope: SCOPES
-        })
-
-        const authInstance = gapi.auth2.getAuthInstance()
-        setIsSignedIn(authInstance.isSignedIn.get())
-        setIsLoading(false)
-
-        authInstance.isSignedIn.listen(setIsSignedIn)
-
-        if (authInstance.isSignedIn.get()) {
-          loadEvents()
-        }
-      })
-    } catch (error) {
-      console.error('Error initializing GAPI:', error)
-      setIsLoading(false)
-    }
-  }
-
   const signIn = async () => {
     try {
-      const authInstance = gapi.auth2.getAuthInstance()
+      const authInstance = window.gapi.auth2.getAuthInstance()
       await authInstance.signIn()
       loadEvents()
     } catch (error) {
@@ -68,7 +92,7 @@ export const useGoogleCalendar = () => {
 
   const signOut = async () => {
     try {
-      const authInstance = gapi.auth2.getAuthInstance()
+      const authInstance = window.gapi.auth2.getAuthInstance()
       await authInstance.signOut()
       setEvents([])
     } catch (error) {
@@ -78,7 +102,7 @@ export const useGoogleCalendar = () => {
 
   const loadEvents = async () => {
     try {
-      const response = await gapi.client.calendar.events.list({
+      const response = await window.gapi.client.calendar.events.list({
         calendarId: 'primary',
         timeMin: new Date().toISOString(),
         showDeleted: false,
@@ -95,7 +119,7 @@ export const useGoogleCalendar = () => {
 
   const createEvent = async (event: Partial<GoogleEvent>) => {
     try {
-      await gapi.client.calendar.events.insert({
+      await window.gapi.client.calendar.events.insert({
         calendarId: 'primary',
         resource: event
       })
@@ -108,7 +132,7 @@ export const useGoogleCalendar = () => {
 
   const updateEvent = async (eventId: string, event: Partial<GoogleEvent>) => {
     try {
-      await gapi.client.calendar.events.update({
+      await window.gapi.client.calendar.events.update({
         calendarId: 'primary',
         eventId,
         resource: event
@@ -122,7 +146,7 @@ export const useGoogleCalendar = () => {
 
   const deleteEvent = async (eventId: string) => {
     try {
-      await gapi.client.calendar.events.delete({
+      await window.gapi.client.calendar.events.delete({
         calendarId: 'primary',
         eventId
       })
