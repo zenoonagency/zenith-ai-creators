@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Plus, Zap } from 'lucide-react'
+import { Plus, Zap, Trash2 } from 'lucide-react'
 
 interface Board {
   id: string
@@ -19,12 +19,6 @@ interface Board {
   }>
 }
 
-interface AutomationDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  board: Board
-}
-
 interface Automation {
   id: string
   name: string
@@ -35,9 +29,16 @@ interface Automation {
   active: boolean
 }
 
-export function AutomationDialog({ open, onOpenChange, board }: AutomationDialogProps) {
+interface AutomationDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  board: Board
+  automations: Automation[]
+  onCreateAutomation: (automation: Omit<Automation, 'id'>) => void
+}
+
+export function AutomationDialog({ open, onOpenChange, board, automations, onCreateAutomation }: AutomationDialogProps) {
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [automations] = useState<Automation[]>([])
   const [formData, setFormData] = useState({
     name: '',
     trigger: '',
@@ -54,10 +55,16 @@ export function AutomationDialog({ open, onOpenChange, board }: AutomationDialog
   ]
 
   const handleCreateAutomation = () => {
-    if (!formData.name || !formData.trigger) return
+    if (!formData.name || !formData.trigger || !formData.webhookUrl) return
     
-    // Aqui você implementaria a lógica para salvar a automação
-    console.log('Criando automação:', formData)
+    onCreateAutomation({
+      name: formData.name,
+      trigger: formData.trigger,
+      sourceListId: formData.sourceListId || undefined,
+      targetListId: formData.targetListId || undefined,
+      webhookUrl: formData.webhookUrl,
+      active: formData.active
+    })
     
     setFormData({
       name: '',
@@ -72,7 +79,7 @@ export function AutomationDialog({ open, onOpenChange, board }: AutomationDialog
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-purple-600" />
@@ -108,7 +115,10 @@ export function AutomationDialog({ open, onOpenChange, board }: AutomationDialog
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-medium">{automation.name}</h4>
-                        <p className="text-sm text-gray-500">{automation.trigger}</p>
+                        <p className="text-sm text-gray-500">
+                          {triggerOptions.find(t => t.value === automation.trigger)?.label}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">{automation.webhookUrl}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={`text-xs px-2 py-1 rounded ${
@@ -233,6 +243,7 @@ export function AutomationDialog({ open, onOpenChange, board }: AutomationDialog
                 <Button 
                   onClick={handleCreateAutomation}
                   className="bg-purple-600 hover:bg-purple-700"
+                  disabled={!formData.name || !formData.trigger || !formData.webhookUrl}
                 >
                   Criar Automação
                 </Button>

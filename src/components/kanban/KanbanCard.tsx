@@ -60,33 +60,57 @@ export function KanbanCard({ card, onEdit, onDelete, isDragging = false }: Kanba
     opacity: isDragging || isSortableDragging ? 0.5 : 1,
   }
 
+  const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    console.log('Editing card:', card.id)
+    onEdit(card)
+  }
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    console.log('Deleting card:', card.id)
+    onDelete(card.id)
+  }
+
+  const handleDropdownClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
   return (
     <Card 
       ref={setNodeRef} 
       style={style} 
-      {...attributes} 
-      {...listeners}
       className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow bg-white"
     >
       <CardContent className="p-3 space-y-3">
         <div className="flex items-start justify-between">
-          <h3 className="font-medium text-sm text-gray-900 line-clamp-2">
-            {card.title}
-          </h3>
+          <div {...attributes} {...listeners} className="flex-1">
+            <h3 className="font-medium text-sm text-gray-900 line-clamp-2">
+              {card.title}
+            </h3>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 w-6 p-0 z-10"
+                onClick={handleDropdownClick}
+              >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(card)}>
+            <DropdownMenuContent align="end" className="bg-white border shadow-md z-50">
+              <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
                 <Edit className="h-4 w-4 mr-2" />
                 Editar
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => onDelete(card.id)}
-                className="text-red-600 focus:text-red-600"
+                onClick={handleDelete}
+                className="text-red-600 focus:text-red-600 cursor-pointer"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Excluir

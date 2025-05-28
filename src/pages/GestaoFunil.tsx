@@ -12,6 +12,7 @@ import { CardSearch } from "@/components/kanban/CardSearch"
 import { CompletedCards } from "@/components/kanban/CompletedCards"
 import { AutomationDialog } from "@/components/kanban/AutomationDialog"
 import { BoardConfigDialog } from "@/components/kanban/BoardConfigDialog"
+import { useToast } from "@/hooks/use-toast"
 
 interface KanbanCard {
   id: string
@@ -38,6 +39,15 @@ interface Board {
   lists: KanbanList[]
   visibility?: 'everyone' | 'me' | 'specific'
   completedListId?: string
+}
+
+interface Automation {
+  id: string
+  trigger: string
+  sourceListId?: string
+  targetListId?: string
+  webhookUrl: string
+  active: boolean
 }
 
 const initialBoards: Board[] = [
@@ -76,8 +86,10 @@ const initialBoards: Board[] = [
 ]
 
 const GestaoFunil = () => {
+  const { toast } = useToast()
   const [boards, setBoards] = useState<Board[]>(initialBoards)
   const [currentBoardId, setCurrentBoardId] = useState("1")
+  const [automations, setAutomations] = useState<Automation[]>([])
   const [showCreateBoard, setShowCreateBoard] = useState(false)
   const [showCreateList, setShowCreateList] = useState(false)
   const [showCreateCard, setShowCreateCard] = useState(false)
@@ -92,6 +104,64 @@ const GestaoFunil = () => {
   const [selectedList, setSelectedList] = useState<KanbanList | null>(null)
 
   const currentBoard = boards.find(board => board.id === currentBoardId)
+
+  const triggerAutomations = async (trigger: string, cardData: KanbanCard, fromListId?: string, toListId?: string) => {
+    console.log('Checking automations for trigger:', trigger)
+    
+    const applicableAutomations = automations.filter(automation => {
+      if (!automation.active) return false
+      
+      if (automation.trigger === trigger) {
+        if (trigger === 'card_moved' && automation.sourceListId && automation.targetListId) {
+          return automation.sourceListId === fromListId && automation.targetListId === toListId
+        }
+        if (trigger === 'card_created_in_list' && automation.sourceListId) {
+          return automation.sourceListId === cardData.listId
+        }
+        return true
+      }
+      
+      return false
+    })
+
+    console.log('Found applicable automations:', applicableAutomations)
+
+    for (const automation of applicableAutomations) {
+      try {
+        console.log('Triggering webhook:', automation.webhookUrl)
+        
+        const webhookData = {
+          trigger: automation.trigger,
+          card: cardData,
+          fromListId,
+          toListId,
+          timestamp: new Date().toISOString()
+        }
+
+        const response = await fetch(automation.webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          mode: 'no-cors',
+          body: JSON.stringify(webhookData)
+        })
+
+        console.log('Webhook triggered successfully')
+        toast({
+          title: "Automação Executada",
+          description: `Webhook disparado para: ${automation.trigger}`,
+        })
+      } catch (error) {
+        console.error('Error triggering webhook:', error)
+        toast({
+          title: "Erro na Automação",
+          description: "Falha ao disparar webhook",
+          variant: "destructive",
+        })
+      }
+    }
+  }
 
   const handleCreateBoard = (name: string) => {
     const newBoard: Board = {
@@ -153,7 +223,7 @@ const GestaoFunil = () => {
     ))
   }
 
-  const handleCreateCard = (cardData: Omit<KanbanCard, 'id' | 'listId'>) => {
+  const handleCreateCard = async (cardData: Omit<KanbanCard, 'id' | 'listId'>) => {
     if (!currentBoard || !selectedListId) return
     
     const newCard: KanbanCard = {
@@ -178,9 +248,13 @@ const GestaoFunil = () => {
     setBoards(boards.map(board => 
       board.id === currentBoardId ? updatedBoard : board
     ))
+
+    // Trigger automations
+    await triggerAutomations('card_created', newCard)
+    await triggerAutomations('card_created_in_list', newCard)
   }
 
-  const handleEditCard = (cardData: Omit<KanbanCard, 'id' | 'listId'>) => {
+  const handleEditCard = async (cardData: Omit<KanbanCard, 'id' | 'listId'>) => {
     if (!currentBoard || !selectedCard) return
     
     const updatedCard = {
@@ -209,6 +283,8 @@ const GestaoFunil = () => {
   const handleDeleteCard = (cardId: string) => {
     if (!currentBoard) return
     
+    console.log('Deleting card:', cardId)
+    
     const updatedBoard = {
       ...currentBoard,
       lists: currentBoard.lists.map(list => ({
@@ -223,10 +299,17 @@ const GestaoFunil = () => {
     setBoards(boards.map(board => 
       board.id === currentBoardId ? updatedBoard : board
     ))
+
+    toast({
+      title: "Card Excluído",
+      description: "O card foi removido com sucesso.",
+    })
   }
 
-  const handleMoveCard = (cardId: string, fromListId: string, toListId: string) => {
+  const handleMoveCard = async (cardId: string, fromListId: string, toListId: string) => {
     if (!currentBoard) return
+    
+    console.log('Moving card:', cardId, 'from:', fromListId, 'to:', toListId)
     
     const card = currentBoard.lists
       .find(list => list.id === fromListId)
@@ -258,6 +341,9 @@ const GestaoFunil = () => {
     setBoards(boards.map(board => 
       board.id === currentBoardId ? updatedBoard : board
     ))
+
+    // Trigger automations
+    await triggerAutomations('card_moved', { ...card, listId: toListId }, fromListId, toListId)
   }
 
   const handleDeleteBoard = () => {
@@ -298,6 +384,19 @@ const GestaoFunil = () => {
     setBoards(boards.map(board => 
       board.id === boardId ? { ...board, ...updates } : board
     ))
+  }
+
+  const handleCreateAutomation = (automationData: Omit<Automation, 'id'>) => {
+    const newAutomation: Automation = {
+      ...automationData,
+      id: Date.now().toString()
+    }
+    setAutomations([...automations, newAutomation])
+    
+    toast({
+      title: "Automação Criada",
+      description: "A automação foi configurada com sucesso.",
+    })
   }
 
   return (
@@ -458,6 +557,8 @@ const GestaoFunil = () => {
             open={showAutomations}
             onOpenChange={setShowAutomations}
             board={currentBoard}
+            automations={automations}
+            onCreateAutomation={handleCreateAutomation}
           />
 
           <BoardConfigDialog
