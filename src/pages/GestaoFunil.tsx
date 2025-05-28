@@ -66,40 +66,48 @@ const GestaoFunil = () => {
           {
             id: '1',
             title: 'Leads',
+            totalValue: 5000,
             cards: [
               {
                 id: '1',
                 title: 'João Silva - Consultoria',
                 description: 'Cliente interessado em consultoria empresarial',
+                value: 5000,
                 priority: 'high',
-                dueDate: '2024-02-15',
+                date: '2024-02-15',
                 tags: ['1'],
                 assignees: ['Ana Costa'],
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                subtasks: { completed: 2, total: 5 },
-                customFields: {}
+                subtasks: [],
+                attachments: [],
+                customFields: [],
+                listId: '1'
               }
             ]
           },
           {
             id: '2',
             title: 'Qualificação',
+            totalValue: 0,
             cards: []
           },
           {
             id: '3',
             title: 'Proposta',
+            totalValue: 0,
             cards: []
           },
           {
             id: '4',
             title: 'Negociação',
+            totalValue: 0,
             cards: []
           },
           {
             id: '5',
             title: 'Fechado',
+            totalValue: 0,
             cards: []
           }
         ],
@@ -112,11 +120,11 @@ const GestaoFunil = () => {
     setCurrentBoard(mockBoards[0])
   }, [])
 
-  const handleCreateBoard = (name: string, description: string) => {
+  const handleCreateBoard = (name: string, description?: string) => {
     const newBoard: Board = {
       id: Date.now().toString(),
       name,
-      description,
+      description: description || '',
       lists: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -145,27 +153,33 @@ const GestaoFunil = () => {
     }
   }
 
-  const handleCreateCard = (listId: string, title: string, description?: string) => {
+  const handleCreateCard = (listId: string, cardData: Omit<KanbanCard, 'id' | 'listId'>) => {
     if (!currentBoard) return
     
     const newCard: KanbanCard = {
+      ...cardData,
       id: Date.now().toString(),
-      title,
-      description: description || '',
-      priority: 'medium',
-      tags: [],
-      assignees: [],
+      listId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      subtasks: { completed: 0, total: 0 },
-      customFields: {}
+      value: cardData.value || 0,
+      priority: cardData.priority || 'medium',
+      subtasks: cardData.subtasks || [],
+      attachments: cardData.attachments || [],
+      tags: cardData.tags || [],
+      customFields: cardData.customFields || [],
+      assignees: cardData.assignees || []
     }
     
     const updatedBoard = {
       ...currentBoard,
       lists: currentBoard.lists.map(list =>
         list.id === listId
-          ? { ...list, cards: [...list.cards, newCard] }
+          ? { 
+              ...list, 
+              cards: [...list.cards, newCard],
+              totalValue: list.totalValue + newCard.value
+            }
           : list
       ),
       updatedAt: new Date().toISOString()
@@ -223,7 +237,8 @@ const GestaoFunil = () => {
     const newList: KanbanList = {
       id: Date.now().toString(),
       title,
-      cards: []
+      cards: [],
+      totalValue: 0
     }
     
     const updatedBoard = {
@@ -272,7 +287,7 @@ const GestaoFunil = () => {
     ))
   }
 
-  const handleMoveCard = (cardId: string, sourceListId: string, targetListId: string, targetIndex: number) => {
+  const handleMoveCard = (cardId: string, sourceListId: string, targetListId: string) => {
     if (!currentBoard) return
     
     const sourceList = currentBoard.lists.find(list => list.id === sourceListId)
@@ -289,15 +304,15 @@ const GestaoFunil = () => {
         if (list.id === sourceListId) {
           return {
             ...list,
-            cards: list.cards.filter(card => card.id !== cardId)
+            cards: list.cards.filter(card => card.id !== cardId),
+            totalValue: list.totalValue - card.value
           }
         }
         if (list.id === targetListId) {
-          const newCards = [...list.cards]
-          newCards.splice(targetIndex, 0, card)
           return {
             ...list,
-            cards: newCards
+            cards: [...list.cards, { ...card, listId: targetListId }],
+            totalValue: list.totalValue + card.value
           }
         }
         return list
@@ -379,11 +394,12 @@ const GestaoFunil = () => {
           <h1 className="text-3xl font-bold text-gray-900">Gestão de Funil</h1>
           <BoardSelector 
             boards={boards}
-            currentBoard={currentBoard}
-            onSelectBoard={setCurrentBoard}
+            currentBoardId={currentBoard.id}
+            onSelectBoard={(boardId) => {
+              const board = boards.find(b => b.id === boardId)
+              if (board) setCurrentBoard(board)
+            }}
             onCreateBoard={() => setShowCreateBoard(true)}
-            onEditBoard={handleUpdateBoard}
-            onDeleteBoard={handleDeleteBoard}
           />
         </div>
         
@@ -424,13 +440,17 @@ const GestaoFunil = () => {
 
       <div className="flex items-center gap-4">
         <div className="flex-1">
-          <CardSearch 
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            filter={filter}
-            onFilterChange={setFilter}
-            tags={tags}
-          />
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="Buscar cards..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+            <Button variant="outline" size="sm">
+              <Filter className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         
         <Badge variant="outline" className="text-sm">
@@ -448,7 +468,7 @@ const GestaoFunil = () => {
           setSelectedListId(listId)
           setShowCreateCard(true)
         }}
-        tags={tags}
+        onCreateList={() => setShowCreateList(true)}
       />
 
       <CreateBoardDialog 
@@ -460,8 +480,7 @@ const GestaoFunil = () => {
       <CreateCardDialog
         open={showCreateCard}
         onOpenChange={setShowCreateCard}
-        onCreateCard={(title, description) => handleCreateCard(selectedListId, title, description)}
-        tags={tags}
+        onCreateCard={(cardData) => handleCreateCard(selectedListId, cardData)}
       />
 
       <CreateListDialog
@@ -474,30 +493,36 @@ const GestaoFunil = () => {
         open={showEditCard}
         onOpenChange={setShowEditCard}
         card={selectedCard}
-        onUpdateCard={handleUpdateCard}
-        tags={tags}
+        onSave={(updates) => {
+          if (selectedCard) {
+            handleUpdateCard(selectedCard.id, updates)
+          }
+        }}
       />
 
       <EditListDialog
         open={showEditList}
         onOpenChange={setShowEditList}
         list={selectedList}
-        onUpdateList={handleUpdateList}
+        onSave={(updates) => {
+          if (selectedList) {
+            handleUpdateList(selectedList.id, updates)
+          }
+        }}
       />
 
       <TagManager
         open={showTagManager}
         onOpenChange={setShowTagManager}
         tags={tags}
-        onUpdateTags={setTags}
+        onSave={setTags}
       />
 
       <CompletedCards
         open={showCompletedCards}
         onOpenChange={setShowCompletedCards}
-        cards={completedCards}
+        completedCards={completedCards}
         onRestoreCard={(cardId) => {
-          // Remover tag de concluído
           handleUpdateCard(cardId, {
             tags: selectedCard?.tags.filter(tag => tag !== '4') || []
           })
@@ -508,14 +533,18 @@ const GestaoFunil = () => {
         open={showAutomation}
         onOpenChange={setShowAutomation}
         board={currentBoard}
-        onUpdateBoard={handleUpdateBoard}
+        onSave={(automations) => {
+          // Handle automation save
+        }}
       />
 
       <BoardConfigDialog
         open={showBoardConfig}
         onOpenChange={setShowBoardConfig}
         board={currentBoard}
-        onUpdateBoard={handleUpdateBoard}
+        onSave={(config) => {
+          handleUpdateBoard(currentBoard.id, config)
+        }}
       />
     </div>
   )

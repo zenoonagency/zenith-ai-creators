@@ -19,7 +19,7 @@ export interface CustomField {
   value: string
 }
 
-export interface TagData {
+export interface Tag {
   id: string
   name: string
   color: string
@@ -40,6 +40,9 @@ export interface KanbanCard {
   tags: string[]
   customFields: CustomField[]
   listId: string
+  assignees: string[]
+  createdAt: string
+  updatedAt: string
 }
 
 export interface KanbanList {
@@ -53,9 +56,19 @@ export interface KanbanList {
 export interface Board {
   id: string
   name: string
+  description?: string
   lists: KanbanList[]
   visibility?: 'everyone' | 'me' | 'specific'
   completedListId?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CardFilter {
+  tags: string[]
+  assignee: string
+  priority: string
+  dueDate: string
 }
 
 export interface Automation {
@@ -65,4 +78,10 @@ export interface Automation {
   targetListId?: string
   webhookUrl: string
   active: boolean
+}
+
+export interface BoardConfig {
+  id: string
+  name: string
+  settings: any
 }
