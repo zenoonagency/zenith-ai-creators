@@ -153,7 +153,7 @@ const GestaoFunil = () => {
     }
   }
 
-  const handleCreateCard = (listId: string, cardData: Omit<KanbanCard, 'id' | 'listId'>) => {
+  const handleCreateCard = (listId: string, cardData: Omit<KanbanCard, 'id' | 'listId' | 'createdAt' | 'updatedAt' | 'assignees'>) => {
     if (!currentBoard) return
     
     const newCard: KanbanCard = {
@@ -168,7 +168,7 @@ const GestaoFunil = () => {
       attachments: cardData.attachments || [],
       tags: cardData.tags || [],
       customFields: cardData.customFields || [],
-      assignees: cardData.assignees || []
+      assignees: []
     }
     
     const updatedBoard = {
@@ -480,6 +480,8 @@ const GestaoFunil = () => {
       <CreateCardDialog
         open={showCreateCard}
         onOpenChange={setShowCreateCard}
+        availableTags={tags}
+        onCreateTag={(tag) => setTags([...tags, tag])}
         onCreateCard={(cardData) => handleCreateCard(selectedListId, cardData)}
       />
 
@@ -489,39 +491,39 @@ const GestaoFunil = () => {
         onCreateList={handleCreateList}
       />
 
-      <EditCardDialog
-        open={showEditCard}
-        onOpenChange={setShowEditCard}
-        card={selectedCard}
-        onSave={(updates) => {
-          if (selectedCard) {
+      {selectedCard && (
+        <EditCardDialog
+          open={showEditCard}
+          onOpenChange={setShowEditCard}
+          card={selectedCard}
+          onUpdateCard={(updates) => {
             handleUpdateCard(selectedCard.id, updates)
-          }
-        }}
-      />
+          }}
+        />
+      )}
 
-      <EditListDialog
-        open={showEditList}
-        onOpenChange={setShowEditList}
-        list={selectedList}
-        onSave={(updates) => {
-          if (selectedList) {
+      {selectedList && (
+        <EditListDialog
+          open={showEditList}
+          onOpenChange={setShowEditList}
+          list={selectedList}
+          onUpdateList={(updates) => {
             handleUpdateList(selectedList.id, updates)
-          }
-        }}
-      />
+          }}
+        />
+      )}
 
       <TagManager
         open={showTagManager}
         onOpenChange={setShowTagManager}
         tags={tags}
-        onSave={setTags}
+        onUpdateTags={setTags}
       />
 
       <CompletedCards
         open={showCompletedCards}
         onOpenChange={setShowCompletedCards}
-        completedCards={completedCards}
+        cards={completedCards}
         onRestoreCard={(cardId) => {
           handleUpdateCard(cardId, {
             tags: selectedCard?.tags.filter(tag => tag !== '4') || []
@@ -533,8 +535,8 @@ const GestaoFunil = () => {
         open={showAutomation}
         onOpenChange={setShowAutomation}
         board={currentBoard}
-        onSave={(automations) => {
-          // Handle automation save
+        onUpdateBoard={(updates) => {
+          handleUpdateBoard(currentBoard.id, updates)
         }}
       />
 
@@ -542,7 +544,7 @@ const GestaoFunil = () => {
         open={showBoardConfig}
         onOpenChange={setShowBoardConfig}
         board={currentBoard}
-        onSave={(config) => {
+        onUpdateBoard={(config) => {
           handleUpdateBoard(currentBoard.id, config)
         }}
       />
