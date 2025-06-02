@@ -523,11 +523,10 @@ const GestaoFunil = () => {
       <CompletedCards
         open={showCompletedCards}
         onOpenChange={setShowCompletedCards}
-        cards={completedCards}
-        onRestoreCard={(cardId) => {
-          handleUpdateCard(cardId, {
-            tags: selectedCard?.tags.filter(tag => tag !== '4') || []
-          })
+        board={currentBoard}
+        completedListId={currentBoard.completedListId}
+        onSetCompletedList={(listId) => {
+          handleUpdateBoard(currentBoard.id, { completedListId: listId })
         }}
       />
 
