@@ -80,7 +80,7 @@ const GestaoFunil = () => {
                 assignees: ['Ana Costa'],
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                subtasks: [],
+                subtasks: { completed: 0, total: 0 },
                 attachments: [],
                 customFields: [],
                 listId: '1'
@@ -165,7 +165,7 @@ const GestaoFunil = () => {
       updatedAt: new Date().toISOString(),
       value: cardData.value || 0,
       priority: cardData.priority || 'medium',
-      subtasks: cardData.subtasks || [],
+      subtasks: cardData.subtasks || { completed: 0, total: 0 },
       attachments: cardData.attachments || [],
       tags: cardData.tags || [],
       customFields: cardData.customFields || [],

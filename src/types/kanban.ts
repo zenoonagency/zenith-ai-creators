@@ -35,7 +35,7 @@ export interface KanbanCard {
   time?: string
   responsible?: string
   priority: 'low' | 'medium' | 'high' | 'urgent'
-  subtasks: Subtask[]
+  subtasks: { completed: number; total: number }
   attachments: Attachment[]
   tags: string[]
   customFields: CustomField[]
