@@ -1,3 +1,4 @@
+
 import { Bot, Settings, MoreVertical, Play, Pause, Link2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -46,7 +47,7 @@ export const AgentCard = ({ agent, onEdit, onDelete, onToggleActive }: AgentCard
             <div>
               <CardTitle className="text-lg">{agent.name}</CardTitle>
               <div className="flex items-center gap-2 mt-1">
-                <Badge className={personalityColors[agent.personality]}>
+                <Badge className={`${personalityColors[agent.personality]} hover:${personalityColors[agent.personality]}`}>
                   {agent.personality}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
@@ -97,10 +98,12 @@ export const AgentCard = ({ agent, onEdit, onDelete, onToggleActive }: AgentCard
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs text-gray-500">
             <span>Idioma: {agent.language}</span>
-            <span className="flex items-center gap-1">
-              <Link2 className="h-3 w-3" />
-              {agent.integrations?.length || 0} integrações
-            </span>
+            {agent.integrations && agent.integrations.length > 0 && (
+              <span className="flex items-center gap-1">
+                <Link2 className="h-3 w-3" />
+                {agent.integrations.length} integrações
+              </span>
+            )}
           </div>
           
           {agent.integrations && agent.integrations.length > 0 && (
