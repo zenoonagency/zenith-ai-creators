@@ -74,7 +74,7 @@ const PaginasEmbed = () => {
                 onRemovePage={handleRemovePage}
               />
               {activePage && (
-                <div className="h-[600px] border rounded-b-lg overflow-hidden">
+                <div className="h-[calc(100vh-300px)] border rounded-b-lg overflow-hidden">
                   <iframe
                     src={activePage.url}
                     className="w-full h-full border-0"
