@@ -1,3 +1,4 @@
+
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -17,12 +18,14 @@ interface IntegrationManagerProps {
   onSave: (integrations: HttpIntegration[]) => void
 }
 
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+
 export function IntegrationManager({ open, onOpenChange, integrations, onSave }: IntegrationManagerProps) {
   const [localIntegrations, setLocalIntegrations] = useState<HttpIntegration[]>(integrations)
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [formData, setFormData] = useState({
     name: '',
-    method: 'GET' as const,
+    method: 'GET' as HttpMethod,
     url: '',
     query: '',
     headers: '',
@@ -34,28 +37,33 @@ export function IntegrationManager({ open, onOpenChange, integrations, onSave }:
   const handleAddIntegration = () => {
     if (localIntegrations.length >= 3) return
     
-    const newIntegration: HttpIntegration = {
-      id: Date.now().toString(),
-      name: formData.name,
-      method: formData.method,
-      url: formData.url,
-      query: formData.query ? JSON.parse(formData.query) : undefined,
-      headers: formData.headers ? JSON.parse(formData.headers) : undefined,
-      body: formData.body || undefined,
-      when: formData.when,
-      requiredData: formData.requiredData.split(',').map(item => item.trim()).filter(Boolean)
-    }
+    try {
+      const newIntegration: HttpIntegration = {
+        id: Date.now().toString(),
+        name: formData.name,
+        method: formData.method,
+        url: formData.url,
+        query: formData.query ? JSON.parse(formData.query) : undefined,
+        headers: formData.headers ? JSON.parse(formData.headers) : undefined,
+        body: formData.body || undefined,
+        when: formData.when,
+        requiredData: formData.requiredData.split(',').map(item => item.trim()).filter(Boolean)
+      }
 
-    if (editingIndex !== null) {
-      const updated = [...localIntegrations]
-      updated[editingIndex] = newIntegration
-      setLocalIntegrations(updated)
-      setEditingIndex(null)
-    } else {
-      setLocalIntegrations([...localIntegrations, newIntegration])
-    }
+      if (editingIndex !== null) {
+        const updated = [...localIntegrations]
+        updated[editingIndex] = newIntegration
+        setLocalIntegrations(updated)
+        setEditingIndex(null)
+      } else {
+        setLocalIntegrations([...localIntegrations, newIntegration])
+      }
 
-    resetForm()
+      resetForm()
+    } catch (error) {
+      console.error('Erro ao processar JSON:', error)
+      alert('Erro no formato JSON. Verifique os campos query e headers.')
+    }
   }
 
   const handleEditIntegration = (index: number) => {
@@ -186,7 +194,7 @@ export function IntegrationManager({ open, onOpenChange, integrations, onSave }:
                     <Label htmlFor="integration-method">Método</Label>
                     <Select
                       value={formData.method}
-                      onValueChange={(value: any) => setFormData({ ...formData, method: value })}
+                      onValueChange={(value: HttpMethod) => setFormData({ ...formData, method: value })}
                     >
                       <SelectTrigger>
                         <SelectValue />

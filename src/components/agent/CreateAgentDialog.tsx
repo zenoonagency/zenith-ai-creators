@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { X } from 'lucide-react'
+import { Settings, Link2 } from 'lucide-react'
 import { CreateAgentData } from '@/types/agent'
 
 interface CreateAgentDialogProps {
@@ -24,9 +24,9 @@ export const CreateAgentDialog = ({ open, onOpenChange, onCreateAgent }: CreateA
     personality: 'professional',
     language: 'pt-BR',
     responseStyle: 'balanced',
-    knowledge: []
+    integrations: []
   })
-  const [knowledgeInput, setKnowledgeInput] = useState('')
+  const [showIntegrationInfo, setShowIntegrationInfo] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,34 +38,9 @@ export const CreateAgentDialog = ({ open, onOpenChange, onCreateAgent }: CreateA
       personality: 'professional',
       language: 'pt-BR',
       responseStyle: 'balanced',
-      knowledge: []
+      integrations: []
     })
-    setKnowledgeInput('')
     onOpenChange(false)
-  }
-
-  const addKnowledge = () => {
-    if (knowledgeInput.trim() && !formData.knowledge.includes(knowledgeInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        knowledge: [...prev.knowledge, knowledgeInput.trim()]
-      }))
-      setKnowledgeInput('')
-    }
-  }
-
-  const removeKnowledge = (knowledge: string) => {
-    setFormData(prev => ({
-      ...prev,
-      knowledge: prev.knowledge.filter(k => k !== knowledge)
-    }))
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      addKnowledge()
-    }
   }
 
   return (
@@ -159,29 +134,35 @@ export const CreateAgentDialog = ({ open, onOpenChange, onCreateAgent }: CreateA
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="knowledge">Base de Conhecimento</Label>
-            <div className="flex gap-2">
-              <Input
-                id="knowledge"
-                value={knowledgeInput}
-                onChange={(e) => setKnowledgeInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Adicione tópicos de conhecimento"
-              />
-              <Button type="button" onClick={addKnowledge} variant="outline">
-                Adicionar
+            <Label>Integrações HTTP</Label>
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <div className="flex items-center gap-2 mb-2">
+                <Link2 className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium">
+                  {formData.integrations.length}/3 integrações configuradas
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                As integrações HTTP serão configuradas após criar o agente. Você poderá adicionar até 3 integrações para permitir que o agente faça requisições para APIs externas.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowIntegrationInfo(!showIntegrationInfo)}
+                className="flex items-center gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                {showIntegrationInfo ? 'Ocultar' : 'Ver'} Detalhes
               </Button>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {formData.knowledge.map((knowledge, index) => (
-                <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                  {knowledge}
-                  <X 
-                    className="h-3 w-3 cursor-pointer" 
-                    onClick={() => removeKnowledge(knowledge)}
-                  />
-                </Badge>
-              ))}
+              {showIntegrationInfo && (
+                <div className="mt-3 text-xs text-gray-600 space-y-1">
+                  <p>• Configure métodos HTTP (GET, POST, PUT, PATCH, DELETE)</p>
+                  <p>• Defina URLs, headers, query parameters e body</p>
+                  <p>• Especifique quando o agente deve usar cada integração</p>
+                  <p>• Liste os dados necessários para fazer as requisições</p>
+                </div>
+              )}
             </div>
           </div>
 

@@ -354,7 +354,7 @@ const GestaoFunil = () => {
   }
 
   const handleDeleteTag = (tagId: string) => {
-    setTags(prev => prev.tags.filter(tag => tag.id !== tagId))
+    setTags(prev => prev.filter(tag => tag.id !== tagId))
   }
 
   const filteredCards = currentBoard?.lists.flatMap(list => 
