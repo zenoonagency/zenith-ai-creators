@@ -1,4 +1,3 @@
-
 import { Bot, Settings, MoreVertical, Play, Pause, Link2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -37,7 +36,7 @@ export const AgentCard = ({ agent, onEdit, onDelete, onToggleActive }: AgentCard
   }
 
   return (
-    <Card className={`transition-all hover:shadow-md ${agent.isActive ? 'border-green-200 bg-green-50/30' : 'border-gray-200'}`}>
+    <Card className={`${agent.isActive ? 'border-green-200 bg-green-50/30' : 'border-gray-200'}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
