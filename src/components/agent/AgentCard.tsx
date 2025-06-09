@@ -1,5 +1,5 @@
 
-import { Bot, Settings, MoreVertical, Play, Pause } from 'lucide-react'
+import { Bot, Settings, MoreVertical, Play, Pause, Link2 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -78,7 +78,7 @@ export const AgentCard = ({ agent, onEdit, onDelete, onToggleActive }: AgentCard
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => onEdit(agent)}>
                   <Settings className="h-4 w-4 mr-2" />
-                  Editar
+                  Gerenciar Integrações
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => onDelete(agent.id)}
@@ -98,19 +98,22 @@ export const AgentCard = ({ agent, onEdit, onDelete, onToggleActive }: AgentCard
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs text-gray-500">
             <span>Idioma: {agent.language}</span>
-            <span>Conhecimentos: {agent.knowledge.length}</span>
+            <span className="flex items-center gap-1">
+              <Link2 className="h-3 w-3" />
+              {agent.integrations?.length || 0} integrações
+            </span>
           </div>
           
-          {agent.knowledge.length > 0 && (
+          {agent.integrations && agent.integrations.length > 0 && (
             <div className="flex flex-wrap gap-1">
-              {agent.knowledge.slice(0, 3).map((knowledge, index) => (
+              {agent.integrations.slice(0, 2).map((integration, index) => (
                 <Badge key={index} variant="outline" className="text-xs">
-                  {knowledge}
+                  {integration.name}
                 </Badge>
               ))}
-              {agent.knowledge.length > 3 && (
+              {agent.integrations.length > 2 && (
                 <Badge variant="outline" className="text-xs">
-                  +{agent.knowledge.length - 3}
+                  +{agent.integrations.length - 2}
                 </Badge>
               )}
             </div>

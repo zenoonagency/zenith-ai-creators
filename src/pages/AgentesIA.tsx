@@ -1,16 +1,19 @@
 
 import { useState } from "react"
-import { Bot, Plus, Search } from "lucide-react"
+import { Bot, Plus, Search, Settings } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CreateAgentDialog } from "@/components/agent/CreateAgentDialog"
 import { AgentCard } from "@/components/agent/AgentCard"
-import { Agent, CreateAgentData } from "@/types/agent"
+import { IntegrationManager } from "@/components/agent/IntegrationManager"
+import { Agent, CreateAgentData, HttpIntegration } from "@/types/agent"
 
 const AgentesIA = () => {
   const [agents, setAgents] = useState<Agent[]>([])
   const [showCreateAgent, setShowCreateAgent] = useState(false)
+  const [showIntegrationManager, setShowIntegrationManager] = useState(false)
+  const [editingAgent, setEditingAgent] = useState<Agent | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
 
   const handleCreateAgent = (agentData: CreateAgentData) => {
@@ -26,8 +29,8 @@ const AgentesIA = () => {
   }
 
   const handleEditAgent = (agent: Agent) => {
-    // TODO: Implementar edição do agente
-    console.log('Editar agente:', agent)
+    setEditingAgent(agent)
+    setShowIntegrationManager(true)
   }
 
   const handleDeleteAgent = (agentId: string) => {
@@ -40,6 +43,17 @@ const AgentesIA = () => {
         ? { ...agent, isActive, updatedAt: new Date().toISOString() }
         : agent
     ))
+  }
+
+  const handleSaveIntegrations = (integrations: HttpIntegration[]) => {
+    if (editingAgent) {
+      setAgents(prev => prev.map(agent => 
+        agent.id === editingAgent.id 
+          ? { ...agent, integrations, updatedAt: new Date().toISOString() }
+          : agent
+      ))
+      setEditingAgent(null)
+    }
   }
 
   const filteredAgents = agents.filter(agent =>
@@ -67,7 +81,7 @@ const AgentesIA = () => {
             Agentes Inteligentes
           </CardTitle>
           <CardDescription>
-            Crie e gerencie seus agentes de IA para atendimento automatizado
+            Crie e gerencie seus agentes de IA para atendimento automatizado com integrações HTTP
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -121,6 +135,13 @@ const AgentesIA = () => {
         open={showCreateAgent}
         onOpenChange={setShowCreateAgent}
         onCreateAgent={handleCreateAgent}
+      />
+
+      <IntegrationManager
+        open={showIntegrationManager}
+        onOpenChange={setShowIntegrationManager}
+        integrations={editingAgent?.integrations || []}
+        onSave={handleSaveIntegrations}
       />
     </div>
   )
