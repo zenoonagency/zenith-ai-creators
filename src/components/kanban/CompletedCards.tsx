@@ -27,6 +27,7 @@ interface Board {
     cards: KanbanCard[]
     color?: string
   }>
+  completedListId?: string
 }
 
 interface CompletedCardsProps {
@@ -52,6 +53,25 @@ const priorityLabels = {
 }
 
 export function CompletedCards({ open, onOpenChange, board, completedListId, onSetCompletedList }: CompletedCardsProps) {
+  // Add safety check for board and board.lists
+  if (!board || !board.lists) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Lista de Concluídos
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-12">
+            <p className="text-gray-500">Nenhum board disponível</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   const completedList = board.lists.find(list => list.id === completedListId)
   const completedCards = completedList?.cards || []
   const totalValue = completedCards.reduce((sum, card) => sum + card.value, 0)
