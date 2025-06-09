@@ -40,7 +40,7 @@ interface AutomationDialogProps {
   onCreateAutomation: (automation: Omit<Automation, 'id'>) => void
 }
 
-export function AutomationDialog({ open, onOpenChange, board, automations, onCreateAutomation }: AutomationDialogProps) {
+export function AutomationDialog({ open, onOpenChange, board, automations = [], onCreateAutomation }: AutomationDialogProps) {
   const [trigger, setTrigger] = useState('')
   const [sourceListId, setSourceListId] = useState('')
   const [targetListId, setTargetListId] = useState('')
@@ -63,6 +63,25 @@ export function AutomationDialog({ open, onOpenChange, board, automations, onCre
       setWebhookUrl('')
       onOpenChange(false)
     }
+  }
+
+  // Add safety check for board and board.lists
+  if (!board || !board.lists) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              Criar Automação
+            </DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-12">
+            <p className="text-gray-500">Nenhum board disponível</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
   }
 
   return (

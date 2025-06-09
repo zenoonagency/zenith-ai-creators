@@ -36,6 +36,7 @@ const GestaoFunil = () => {
     priority: '',
     dueDate: ''
   })
+  const [automations, setAutomations] = useState<Automation[]>([])
   const [showCreateBoard, setShowCreateBoard] = useState(false)
   const [showCreateCard, setShowCreateCard] = useState(false)
   const [showCreateList, setShowCreateList] = useState(false)
@@ -229,6 +230,14 @@ const GestaoFunil = () => {
     setBoards(boards.map(board => 
       board.id === currentBoard.id ? updatedBoard : board
     ))
+  }
+
+  const handleCreateAutomation = (automation: Omit<Automation, 'id'>) => {
+    const newAutomation: Automation = {
+      ...automation,
+      id: Date.now().toString()
+    }
+    setAutomations([...automations, newAutomation])
   }
 
   const handleCreateList = (title: string) => {
@@ -496,7 +505,7 @@ const GestaoFunil = () => {
           open={showEditCard}
           onOpenChange={setShowEditCard}
           card={selectedCard}
-          onUpdateCard={(updates) => {
+          onSave={(updates) => {
             handleUpdateCard(selectedCard.id, updates)
           }}
         />
@@ -507,7 +516,7 @@ const GestaoFunil = () => {
           open={showEditList}
           onOpenChange={setShowEditList}
           list={selectedList}
-          onUpdateList={(updates) => {
+          onSave={(updates) => {
             handleUpdateList(selectedList.id, updates)
           }}
         />
@@ -517,7 +526,7 @@ const GestaoFunil = () => {
         open={showTagManager}
         onOpenChange={setShowTagManager}
         tags={tags}
-        onUpdateTags={setTags}
+        onSave={setTags}
       />
 
       <CompletedCards
@@ -534,16 +543,15 @@ const GestaoFunil = () => {
         open={showAutomation}
         onOpenChange={setShowAutomation}
         board={currentBoard}
-        onUpdateBoard={(updates) => {
-          handleUpdateBoard(currentBoard.id, updates)
-        }}
+        automations={automations}
+        onCreateAutomation={handleCreateAutomation}
       />
 
       <BoardConfigDialog
         open={showBoardConfig}
         onOpenChange={setShowBoardConfig}
         board={currentBoard}
-        onUpdateBoard={(config) => {
+        onSave={(config) => {
           handleUpdateBoard(currentBoard.id, config)
         }}
       />
