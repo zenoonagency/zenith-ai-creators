@@ -19,6 +19,7 @@ interface TagManagerProps {
   tags: TagData[]
   onCreateTag: (tag: Omit<TagData, 'id'>) => void
   onDeleteTag: (tagId: string) => void
+  onTagsChange?: (tags: TagData[]) => void
 }
 
 const tagColors = [
@@ -26,7 +27,7 @@ const tagColors = [
   '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'
 ]
 
-export function TagManager({ open, onOpenChange, tags, onCreateTag, onDeleteTag }: TagManagerProps) {
+export function TagManager({ open, onOpenChange, tags, onCreateTag, onDeleteTag, onTagsChange }: TagManagerProps) {
   const [name, setName] = useState('')
   const [color, setColor] = useState(tagColors[0])
 
@@ -39,6 +40,14 @@ export function TagManager({ open, onOpenChange, tags, onCreateTag, onDeleteTag 
       })
       setName('')
       setColor(tagColors[0])
+    }
+  }
+
+  const handleDeleteTag = (tagId: string) => {
+    onDeleteTag(tagId)
+    if (onTagsChange) {
+      const updatedTags = tags.filter(tag => tag.id !== tagId)
+      onTagsChange(updatedTags)
     }
   }
 
@@ -101,7 +110,7 @@ export function TagManager({ open, onOpenChange, tags, onCreateTag, onDeleteTag 
                     {tag.name}
                     <button
                       type="button"
-                      onClick={() => onDeleteTag(tag.id)}
+                      onClick={() => handleDeleteTag(tag.id)}
                       className="ml-1 hover:bg-black/20 rounded-full p-0.5"
                     >
                       <X className="h-3 w-3" />

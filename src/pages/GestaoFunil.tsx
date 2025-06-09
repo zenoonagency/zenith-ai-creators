@@ -345,6 +345,18 @@ const GestaoFunil = () => {
     setShowEditList(true)
   }
 
+  const handleCreateTag = (tag: Omit<Tag, 'id'>) => {
+    const newTag: Tag = {
+      ...tag,
+      id: Date.now().toString()
+    }
+    setTags(prev => [...prev, newTag])
+  }
+
+  const handleDeleteTag = (tagId: string) => {
+    setTags(prev => prev.tags.filter(tag => tag.id !== tagId))
+  }
+
   const filteredCards = currentBoard?.lists.flatMap(list => 
     list.cards.filter(card => {
       const matchesSearch = card.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -529,16 +541,20 @@ const GestaoFunil = () => {
         open={showTagManager}
         onOpenChange={setShowTagManager}
         tags={tags}
-        onSave={setTags}
+        onCreateTag={handleCreateTag}
+        onDeleteTag={handleDeleteTag}
+        onTagsChange={setTags}
       />
 
       <CompletedCards
         open={showCompletedCards}
         onOpenChange={setShowCompletedCards}
         board={currentBoard}
-        completedListId={currentBoard.completedListId}
+        completedListId={currentBoard?.completedListId}
         onSetCompletedList={(listId) => {
-          handleUpdateBoard(currentBoard.id, { completedListId: listId })
+          if (currentBoard) {
+            handleUpdateBoard(currentBoard.id, { completedListId: listId })
+          }
         }}
       />
 
