@@ -6,8 +6,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { Settings, Link2 } from 'lucide-react'
 import { CreateAgentData } from '@/types/agent'
 
 interface CreateAgentDialogProps {
@@ -26,7 +24,6 @@ export const CreateAgentDialog = ({ open, onOpenChange, onCreateAgent }: CreateA
     responseStyle: 'balanced',
     integrations: []
   })
-  const [showIntegrationInfo, setShowIntegrationInfo] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -130,39 +127,6 @@ export const CreateAgentDialog = ({ open, onOpenChange, onCreateAgent }: CreateA
                   <SelectItem value="detailed">Detalhado</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Integrações HTTP</Label>
-            <div className="bg-gray-50 p-4 rounded-lg border">
-              <div className="flex items-center gap-2 mb-2">
-                <Link2 className="h-4 w-4 text-gray-500" />
-                <span className="text-sm font-medium">
-                  {formData.integrations.length}/3 integrações configuradas
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mb-3">
-                As integrações HTTP serão configuradas após criar o agente. Você poderá adicionar até 3 integrações para permitir que o agente faça requisições para APIs externas.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowIntegrationInfo(!showIntegrationInfo)}
-                className="flex items-center gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                {showIntegrationInfo ? 'Ocultar' : 'Ver'} Detalhes
-              </Button>
-              {showIntegrationInfo && (
-                <div className="mt-3 text-xs text-gray-600 space-y-1">
-                  <p>• Configure métodos HTTP (GET, POST, PUT, PATCH, DELETE)</p>
-                  <p>• Defina URLs, headers, query parameters e body</p>
-                  <p>• Especifique quando o agente deve usar cada integração</p>
-                  <p>• Liste os dados necessários para fazer as requisições</p>
-                </div>
-              )}
             </div>
           </div>
 
