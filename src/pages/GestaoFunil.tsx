@@ -490,7 +490,7 @@ const GestaoFunil = () => {
         open={showCreateCard}
         onOpenChange={setShowCreateCard}
         availableTags={tags}
-        onCreateTag={(tag) => setTags([...tags, tag])}
+        onCreateTag={() => setShowTagManager(true)}
         onCreateCard={(cardData) => handleCreateCard(selectedListId, cardData)}
       />
 
@@ -505,7 +505,9 @@ const GestaoFunil = () => {
           open={showEditCard}
           onOpenChange={setShowEditCard}
           card={selectedCard}
-          onSave={(updates) => {
+          availableTags={tags}
+          onCreateTag={() => setShowTagManager(true)}
+          onEditCard={(updates) => {
             handleUpdateCard(selectedCard.id, updates)
           }}
         />
@@ -516,9 +518,10 @@ const GestaoFunil = () => {
           open={showEditList}
           onOpenChange={setShowEditList}
           list={selectedList}
-          onSave={(updates) => {
-            handleUpdateList(selectedList.id, updates)
+          onEditList={(listId, title, color) => {
+            handleUpdateList(listId, { title, color })
           }}
+          onDeleteList={handleDeleteList}
         />
       )}
 
@@ -551,8 +554,8 @@ const GestaoFunil = () => {
         open={showBoardConfig}
         onOpenChange={setShowBoardConfig}
         board={currentBoard}
-        onSave={(config) => {
-          handleUpdateBoard(currentBoard.id, config)
+        onUpdateBoard={(boardId, config) => {
+          handleUpdateBoard(boardId, config)
         }}
       />
     </div>
