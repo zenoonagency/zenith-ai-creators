@@ -1,3 +1,4 @@
+
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,51 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import type { KanbanList as KanbanListType, KanbanCard as KanbanCardType } from '@/types/kanban'
-
-interface Subtask {
-  id: string
-  name: string
-  description: string
-  completed: boolean
-}
-
-interface Attachment {
-  id: string
-  name: string
-  type: 'image' | 'document' | 'video'
-  url: string
-}
-
-interface CustomField {
-  id: string
-  name: string
-  value: string
-}
-
-interface KanbanCard {
-  id: string
-  title: string
-  description?: string
-  value: number
-  phone?: string
-  date?: string
-  time?: string
-  responsible?: string
-  priority: 'low' | 'medium' | 'high' | 'urgent'
-  subtasks: Subtask[]
-  attachments: Attachment[]
-  tags: string[]
-  customFields: CustomField[]
-  listId: string
-}
-
-interface KanbanList {
-  id: string
-  title: string
-  cards: KanbanCard[]
-  totalValue: number
-  color?: string
-}
 
 interface KanbanListProps {
   list: KanbanListType
