@@ -70,19 +70,15 @@ export function KanbanCard({
     onDelete(card.id);
   };
 
-  const handleDropdownClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Não abrir modal se clicou no dropdown
-    if ((e.target as HTMLElement).closest('.dropdown-menu-trigger')) {
-      return;
-    }
+  const handleView = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setShowDetails(true);
+  };
+
+  const handleDropdownClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
   };
 
   const completedSubtasks = card.subtasks?.completed || 0;
@@ -94,7 +90,6 @@ export function KanbanCard({
         ref={setNodeRef} 
         style={style} 
         className="cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow bg-white group select-none"
-        onClick={handleCardClick}
         {...attributes} 
         {...listeners}
       >
@@ -105,28 +100,38 @@ export function KanbanCard({
                 {card.title}
               </h3>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-6 w-6 p-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity dropdown-menu-trigger" 
-                  onClick={handleDropdownClick}
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-white border shadow-md z-50">
-                <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDelete} className="text-red-600 focus:text-red-600 cursor-pointer">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Excluir
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-1">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 w-6 p-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity" 
+                onClick={handleView}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 w-6 p-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity dropdown-menu-trigger" 
+                    onClick={handleDropdownClick}
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-white border shadow-md z-50">
+                  <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDelete} className="text-red-600 focus:text-red-600 cursor-pointer">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Excluir
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
           {/* Prioridade */}
