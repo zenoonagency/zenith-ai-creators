@@ -100,12 +100,18 @@ export function KanbanCard({
                 {card.title}
               </h3>
             </div>
-            <div className="flex items-center gap-1">
+            <div 
+              className="flex items-center gap-1"
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
               <Button 
                 variant="ghost" 
                 size="sm" 
                 className="h-6 w-6 p-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity" 
                 onClick={handleView}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
               >
                 <Eye className="h-4 w-4" />
               </Button>
@@ -116,6 +122,8 @@ export function KanbanCard({
                     size="sm" 
                     className="h-6 w-6 p-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity dropdown-menu-trigger" 
                     onClick={handleDropdownClick}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
