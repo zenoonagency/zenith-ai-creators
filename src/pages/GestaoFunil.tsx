@@ -431,7 +431,7 @@ const GestaoFunil = () => {
           
           <Button variant="outline" onClick={() => setShowCompletedCards(true)}>
             <Archive className="h-4 w-4 mr-2" />
-            Concluídos ({completedCards.length})
+            Concluídos
           </Button>
           
           <DropdownMenu>
@@ -475,7 +475,7 @@ const GestaoFunil = () => {
         </div>
         
         <Badge variant="outline" className="text-sm">
-          {filteredCards.length} cards encontrados
+          {currentBoard.lists.flatMap(list => list.cards).length} cards encontrados
         </Badge>
       </div>
 

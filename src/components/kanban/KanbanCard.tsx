@@ -54,7 +54,6 @@ export function KanbanCard({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging || isSortableDragging ? 0.5 : 1,
-    userSelect: 'none' as const
   };
 
   const handleEdit = (e: React.MouseEvent) => {
@@ -77,6 +76,10 @@ export function KanbanCard({
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
+    // Não abrir modal se clicou no dropdown
+    if ((e.target as HTMLElement).closest('.dropdown-menu-trigger')) {
+      return;
+    }
     e.preventDefault();
     e.stopPropagation();
     setShowDetails(true);
@@ -95,7 +98,7 @@ export function KanbanCard({
         {...attributes} 
         {...listeners}
       >
-        <CardContent className="p-3 space-y-2">
+        <CardContent className="p-3 space-y-2" style={{ userSelect: 'none' }}>
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h3 className="font-medium text-sm text-gray-900 text-left">
@@ -104,7 +107,12 @@ export function KanbanCard({
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity" onClick={handleDropdownClick}>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-6 w-6 p-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity dropdown-menu-trigger" 
+                  onClick={handleDropdownClick}
+                >
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
