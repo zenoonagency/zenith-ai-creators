@@ -2,6 +2,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "./AppSidebar"
 import { UserHeader } from "./UserHeader"
+import { HelpButton } from "./HelpButton"
 
 interface LayoutProps {
   children: React.ReactNode
@@ -28,6 +29,8 @@ export function Layout({ children }: LayoutProps) {
             {children}
           </main>
         </div>
+        
+        <HelpButton />
       </div>
     </SidebarProvider>
   )
