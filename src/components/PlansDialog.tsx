@@ -86,7 +86,7 @@ export function PlansDialog({ open, onOpenChange }: PlansDialogProps) {
           <DialogTitle className="text-2xl font-bold text-center mb-2">
             Escolha seu Plano
           </DialogTitle>
-          <p className="text-center text-gray-600">
+          <p className="text-center text-muted-foreground">
             Selecione o plano que melhor atende às suas necessidades
           </p>
         </DialogHeader>
@@ -96,11 +96,11 @@ export function PlansDialog({ open, onOpenChange }: PlansDialogProps) {
             <Card 
               key={plan.id}
               className={`relative transition-all duration-200 hover:shadow-lg ${
-                plan.isPopular ? 'border-purple-500 shadow-lg' : 'border-gray-200'
+                plan.isPopular ? 'border-primary shadow-lg' : 'border-border'
               }`}
             >
               {plan.isPopular && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-purple-500 text-white px-4 py-1">
+                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1">
                   <Star className="w-3 h-3 mr-1" />
                   Popular
                 </Badge>
@@ -110,17 +110,17 @@ export function PlansDialog({ open, onOpenChange }: PlansDialogProps) {
                 <CardTitle className="text-lg font-semibold mb-2">
                   {plan.name}
                 </CardTitle>
-                <p className="text-sm text-gray-600 mb-4 min-h-[40px]">
+                <p className="text-sm text-muted-foreground mb-4 min-h-[40px]">
                   {plan.description}
                 </p>
                 <div className="flex items-baseline justify-center">
                   <span className="text-3xl font-bold">{plan.price}</span>
-                  <span className="text-gray-500 ml-1">{plan.period}</span>
+                  <span className="text-muted-foreground ml-1">{plan.period}</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   1 licença incluída
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Licenças adicionais disponíveis no checkout
                 </p>
               </CardHeader>
@@ -129,10 +129,10 @@ export function PlansDialog({ open, onOpenChange }: PlansDialogProps) {
                 <ul className="space-y-3 mb-6">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start gap-2">
-                      <div className="w-5 h-5 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Check className="w-3 h-3 text-purple-600" />
+                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Check className="w-3 h-3 text-primary" />
                       </div>
-                      <span className="text-sm text-gray-700">{feature}</span>
+                      <span className="text-sm text-foreground">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -140,8 +140,8 @@ export function PlansDialog({ open, onOpenChange }: PlansDialogProps) {
                 <Button 
                   className={`w-full ${
                     plan.isPopular 
-                      ? 'bg-purple-600 hover:bg-purple-700' 
-                      : 'bg-gray-900 hover:bg-gray-800'
+                      ? 'bg-primary hover:bg-primary/90' 
+                      : 'bg-foreground hover:bg-foreground/90 text-background'
                   }`}
                   onClick={() => handleSelectPlan(plan.id)}
                 >
@@ -152,14 +152,14 @@ export function PlansDialog({ open, onOpenChange }: PlansDialogProps) {
           ))}
         </div>
 
-        <div className="mt-8 p-6 bg-gray-50 rounded-lg">
+        <div className="mt-8 p-6 bg-muted rounded-lg">
           <h3 className="text-lg font-semibold mb-4">Resumo do plano</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h4 className="font-medium mb-3">Licenças</h4>
-              <p className="text-sm text-gray-600 mb-2">1 licença incluída</p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground mb-2">1 licença incluída</p>
+              <p className="text-sm text-muted-foreground">
                 Opção de licenças adicionais dentro do checkout
               </p>
             </div>
@@ -167,13 +167,13 @@ export function PlansDialog({ open, onOpenChange }: PlansDialogProps) {
             <div>
               <h4 className="font-medium mb-3">Nossos termos</h4>
               <div className="space-y-1">
-                <a href="#" className="text-sm text-purple-600 hover:underline block">
+                <a href="#" className="text-sm text-primary hover:underline block">
                   Termos de uso
                 </a>
-                <a href="#" className="text-sm text-purple-600 hover:underline block">
+                <a href="#" className="text-sm text-primary hover:underline block">
                   Termos de segurança
                 </a>
-                <a href="#" className="text-sm text-purple-600 hover:underline block">
+                <a href="#" className="text-sm text-primary hover:underline block">
                   Termos gerais
                 </a>
               </div>
