@@ -155,22 +155,27 @@ const GestaoFunil = () => {
     }
   }
 
-  const handleCreateCard = (listId: string, cardData: Omit<KanbanCard, 'id' | 'listId' | 'createdAt' | 'updatedAt' | 'assignees'>) => {
+  const handleCreateCard = (listId: string, cardData: Partial<KanbanCard>) => {
     if (!currentBoard) return
     
     const newCard: KanbanCard = {
-      ...cardData,
       id: Date.now().toString(),
-      listId,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      title: cardData.title || '',
+      description: cardData.description,
       value: cardData.value || 0,
+      phone: cardData.phone,
+      date: cardData.date,
+      time: cardData.time,
+      responsible: cardData.responsible,
       priority: cardData.priority || 'medium',
       subtasks: cardData.subtasks || { completed: 0, total: 0 },
       attachments: cardData.attachments || [],
       tags: cardData.tags || [],
       customFields: cardData.customFields || [],
-      assignees: []
+      listId,
+      assignees: cardData.assignees || [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
     
     const updatedBoard = {
