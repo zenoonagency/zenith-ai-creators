@@ -464,7 +464,7 @@ const GestaoFunil = () => {
             </div>
           </div>
           
-          <Badge variant="outline" className="text-sm">
+          <Badge variant="outline" className="text-sm bg-purple-100">
             {currentBoard.lists.flatMap(list => list.cards).length} cards encontrados
           </Badge>
         </div>
