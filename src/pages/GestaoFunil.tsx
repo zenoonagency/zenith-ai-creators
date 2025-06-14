@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { Plus, Search, Filter, MoreVertical, Archive } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -155,10 +154,10 @@ const GestaoFunil = () => {
     }
   }
 
-  const handleCreateCard = (listId: string, cardData: Partial<KanbanCard>) => {
+  const handleCreateCard = (listId: string, cardData: any) => {
     if (!currentBoard) return
     
-    const newCard: KanbanCard = {
+    const newCard = {
       id: Date.now().toString(),
       title: cardData.title || '',
       description: cardData.description,
@@ -168,8 +167,8 @@ const GestaoFunil = () => {
       time: cardData.time,
       responsible: cardData.responsible,
       priority: cardData.priority || 'medium',
-      subtasks: cardData.subtasks || { completed: 0, total: 0 },
-      attachments: cardData.attachments || [],
+      subtasks: { completed: 0, total: 0 },
+      attachments: 0,
       tags: cardData.tags || [],
       customFields: cardData.customFields || [],
       listId,
@@ -198,7 +197,7 @@ const GestaoFunil = () => {
     ))
   }
 
-  const handleUpdateCard = (cardId: string, updates: Partial<KanbanCard>) => {
+  const handleUpdateCard = (cardId: string, updates: any) => {
     if (!currentBoard) return
     
     const updatedBoard = {
@@ -421,7 +420,7 @@ const GestaoFunil = () => {
           <h1 className="text-3xl font-bold text-gray-900">Gestão de Funil</h1>
           <BoardSelector 
             boards={boards}
-            currentBoardId={currentBoard.id}
+            currentBoardId={currentBoard?.id || ''}
             onSelectBoard={(boardId) => {
               const board = boards.find(b => b.id === boardId)
               if (board) setCurrentBoard(board)
@@ -569,7 +568,6 @@ const GestaoFunil = () => {
         onOpenChange={setShowAutomation}
         board={currentBoard}
         automations={automations}
-        onCreateAutomation={handleCreateAutomation}
       />
 
       <BoardConfigDialog

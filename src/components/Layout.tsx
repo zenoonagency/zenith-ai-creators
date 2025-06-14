@@ -18,9 +18,6 @@ export function Layout({ children }: LayoutProps) {
           <header className="h-16 flex items-center justify-between border-b bg-white px-6 shadow-sm">
             <div className="flex items-center">
               <SidebarTrigger className="mr-4" />
-              <h1 className="text-xl font-semibold text-gray-800">
-                Dashboard
-              </h1>
             </div>
             <UserHeader />
           </header>

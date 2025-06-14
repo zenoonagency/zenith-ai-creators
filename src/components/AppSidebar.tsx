@@ -1,16 +1,22 @@
 
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  MessageCircle, 
-  Send, 
-  Users, 
-  DollarSign, 
-  FileText, 
-  Settings,
+import { useState } from "react"
+import { NavLink, useLocation } from "react-router-dom"
+import {
+  LayoutDashboard,
+  Calendar,
+  MessageCircle,
+  Send,
+  BarChart3,
+  Users,
+  DollarSign,
+  FileText,
+  Globe,
+  Bot,
+  MessageSquare,
+  Tag,
+  ChevronDown,
   ChevronRight
 } from "lucide-react"
-import { NavLink, useLocation } from "react-router-dom"
 import {
   Sidebar,
   SidebarContent,
@@ -20,215 +26,142 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { useState } from "react"
 
-const menuSections = [
+const navigation = [
   {
-    label: "GERAL",
+    title: "GERAL",
     items: [
-      { 
-        title: "Dashboard", 
-        url: "/dashboard", 
-        icon: LayoutDashboard,
-        badge: null
-      },
-      { 
-        title: "Calendário", 
-        url: "/calendario", 
-        icon: Calendar,
-        badge: "Novo"
-      },
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+      { title: "Calendário", url: "/calendario", icon: Calendar, badge: "Novo" },
     ]
   },
   {
-    label: "COMUNICAÇÃO",
+    title: "COMUNICAÇÃO",
     items: [
-      { 
-        title: "Conversas", 
-        url: "/conversas", 
-        icon: MessageCircle,
-        badge: null
-      },
-      { 
-        title: "Disparo", 
-        url: "/disparo", 
-        icon: Send,
-        badge: null
-      },
+      { title: "Conversas", url: "/conversas", icon: MessageCircle },
+      { title: "Disparo", url: "/disparo", icon: Send },
     ]
   },
   {
-    label: "GESTÃO",
+    title: "GESTÃO",
     items: [
-      { 
-        title: "Gestão de funil", 
-        url: "/gestao-funil", 
-        icon: Settings,
-        badge: "Novo"
-      },
-      { 
-        title: "Equipe", 
-        url: "/equipe", 
-        icon: Users,
-        badge: null
-      },
+      { title: "Gestão de funil", url: "/gestao-funil", icon: BarChart3, badge: "Novo" },
+      { title: "Equipe", url: "/equipe", icon: Users },
     ]
   },
   {
-    label: "FINANCEIRO",
+    title: "FINANCEIRO",
     items: [
-      { 
-        title: "Financeiro", 
-        url: "/financeiro", 
-        icon: DollarSign,
-        badge: null
-      },
-      { 
-        title: "Contratos", 
-        url: "/contratos", 
-        icon: FileText,
-        badge: null
-      },
+      { title: "Financeiro", url: "/financeiro", icon: DollarSign },
+      { title: "Contratos", url: "/contratos", icon: FileText },
     ]
   },
   {
-    label: "AVANÇADO",
+    title: "AVANÇADO",
     items: [
-      { 
-        title: "Páginas Embed", 
-        url: "/paginas-embed", 
-        icon: Settings,
-        badge: "Novo"
-      },
-      { 
-        title: "Agentes de IA", 
-        url: "/agentes", 
-        icon: MessageCircle,
-        badge: null
-      },
-      { 
-        title: "Conectar WhatsApp", 
-        url: "/whatsapp", 
-        icon: MessageCircle,
-        badge: null
-      },
+      { title: "Páginas Embed", url: "/paginas-embed", icon: Globe, badge: "Novo" },
     ]
   }
 ]
 
-const advancedItems = [
-  { title: "Marcadores", url: "/marcadores", hasSubmenu: true }
+const marcadores = [
+  { id: "1", name: "Marketing", color: "bg-blue-500" },
+  { id: "2", name: "Agente de IA", color: "bg-orange-500" },
+  { id: "3", name: "teste", color: "bg-purple-500" },
 ]
 
 export function AppSidebar() {
-  const { state } = useSidebar()
+  const { collapsed } = useSidebar()
   const location = useLocation()
-  const currentPath = location.pathname
-  const isCollapsed = state === "collapsed"
-  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null)
+  const [marcadoresOpen, setMarcadoresOpen] = useState(false)
 
-  const isActive = (path: string) => currentPath === path || currentPath.startsWith(path)
-
-  const toggleSubmenu = (title: string) => {
-    setOpenSubmenu(openSubmenu === title ? null : title)
-  }
+  const isActive = (url: string) => location.pathname === url
 
   return (
-    <Sidebar className="border-r border-gray-200 bg-white">
-      <SidebarContent className="px-0">
-        {/* Logo */}
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900">ZEN<span className="text-purple-600">AIX</span></h2>
+    <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible>
+      <div className="p-4 border-b">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+            Z
+          </div>
+          {!collapsed && (
+            <span className="font-bold text-xl text-gray-900">ZENAX</span>
+          )}
         </div>
+      </div>
 
-        {/* Menu Sections */}
-        <div className="py-2">
-          {menuSections.map((section) => (
-            <SidebarGroup key={section.label} className="px-0 py-2">
-              <SidebarGroupLabel className="px-6 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {section.label}
+      <SidebarContent className="p-4">
+        {navigation.map((section) => (
+          <SidebarGroup key={section.title} className="mb-6">
+            {!collapsed && (
+              <SidebarGroupLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                {section.title}
               </SidebarGroupLabel>
-              
-              <SidebarGroupContent>
-                <SidebarMenu className="px-3">
-                  {section.items.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                        <NavLink 
-                          to={item.url} 
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all w-full group relative ${
-                            isActive(item.url)
-                              ? "bg-purple-600 text-white"
-                              : "text-gray-700 hover:bg-gray-100"
-                          }`}
-                        >
-                          <item.icon className="h-5 w-5 flex-shrink-0" />
-                          <span className="text-sm font-medium">{item.title}</span>
-                          {item.badge && (
-                            <span className="ml-auto bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium">
-                              {item.badge}
-                            </span>
-                          )}
-                          {isActive(item.url) && (
-                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-600 rounded-r-full" />
-                          )}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          ))}
-
-          {/* Advanced Items with Submenu */}
-          <SidebarGroup className="px-0 py-2">
+            )}
             <SidebarGroupContent>
-              <SidebarMenu className="px-3">
-                {advancedItems.map((item) => (
+              <SidebarMenu>
+                {section.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <Collapsible
-                      open={openSubmenu === item.title}
-                      onOpenChange={() => toggleSubmenu(item.title)}
+                    <SidebarMenuButton
+                      asChild
+                      className={`w-full justify-start rounded-lg transition-colors ${
+                        isActive(item.url)
+                          ? "bg-purple-100 text-purple-700 font-medium"
+                          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      }`}
                     >
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all w-full text-gray-700 hover:bg-gray-100">
-                          <Settings className="h-5 w-5 flex-shrink-0" />
-                          <span className="text-sm font-medium">{item.title}</span>
-                          <ChevronRight 
-                            className={`h-4 w-4 ml-auto transition-transform ${
-                              openSubmenu === item.title ? "rotate-90" : ""
-                            }`} 
-                          />
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          <SidebarMenuSubItem>
-                            <SidebarMenuSubButton asChild>
-                              <NavLink 
-                                to="/marcadores/submenu"
-                                className="flex items-center gap-3 px-8 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg"
-                              >
-                                Submenu Item
-                              </NavLink>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </Collapsible>
+                      <NavLink to={item.url} className="flex items-center gap-3 px-3 py-2">
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        {!collapsed && (
+                          <div className="flex items-center justify-between w-full">
+                            <span className="text-sm">{item.title}</span>
+                            {item.badge && (
+                              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                                {item.badge}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-        </div>
+        ))}
+
+        {!collapsed && (
+          <div className="mt-6">
+            <Collapsible open={marcadoresOpen} onOpenChange={setMarcadoresOpen}>
+              <CollapsibleTrigger className="flex items-center justify-between w-full text-left text-sm font-medium text-gray-700 hover:text-gray-900 mb-2">
+                <div className="flex items-center gap-2">
+                  <Tag className="h-4 w-4" />
+                  Marcadores
+                </div>
+                {marcadoresOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2">
+                {marcadores.map((marcador) => (
+                  <div key={marcador.id} className="flex items-center gap-2 px-6 py-1">
+                    <div className={`w-3 h-3 rounded-full ${marcador.color}`} />
+                    <span className="text-sm text-gray-600">{marcador.name}</span>
+                  </div>
+                ))}
+                <button className="flex items-center gap-2 px-6 py-1 text-sm text-purple-600 hover:text-purple-700">
+                  + Novo
+                </button>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        )}
       </SidebarContent>
     </Sidebar>
   )

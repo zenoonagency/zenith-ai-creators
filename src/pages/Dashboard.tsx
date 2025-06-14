@@ -1,90 +1,117 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart, DollarSign, Users, TrendingUp, Calendar } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { BarChart, DollarSign, Users, FileText, Settings, TrendingUp, Calendar, Download } from "lucide-react"
 
 const Dashboard = () => {
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <div className="flex items-center gap-4">
-          <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-            + Exportar Relatório
-          </button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">Dashboard</h1>
+          <p className="text-gray-600">Meu Primeiro Quadro</p>
         </div>
+        <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+          <Download className="h-4 w-4 mr-2" />
+          Exportar Relatório
+        </Button>
       </div>
 
       {/* Cards principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-purple-50 border-purple-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-700">Kanban</CardTitle>
-            <BarChart className="h-5 w-5 text-purple-600" />
+        <Card className="bg-purple-50 border-purple-200 hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-lg font-semibold text-purple-900">Kanban</CardTitle>
+              <CardDescription className="text-sm text-purple-700">Gestão de negócios</CardDescription>
+            </div>
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <BarChart className="h-6 w-6 text-purple-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold text-purple-900">Gestão de negócios</div>
-          </CardContent>
         </Card>
 
-        <Card className="bg-green-50 border-green-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-700">Financeiro</CardTitle>
-            <DollarSign className="h-5 w-5 text-green-600" />
+        <Card className="bg-green-50 border-green-200 hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-lg font-semibold text-green-900">Financeiro</CardTitle>
+              <CardDescription className="text-sm text-green-700">Controle financeiro</CardDescription>
+            </div>
+            <div className="p-2 bg-green-100 rounded-lg">
+              <DollarSign className="h-6 w-6 text-green-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold text-green-900">Controle financeiro</div>
-          </CardContent>
         </Card>
 
-        <Card className="bg-orange-50 border-orange-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-orange-700">Contratos</CardTitle>
-            <Users className="h-5 w-5 text-orange-600" />
+        <Card className="bg-orange-50 border-orange-200 hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-lg font-semibold text-orange-900">Contratos</CardTitle>
+              <CardDescription className="text-sm text-orange-700">Gestão de contratos</CardDescription>
+            </div>
+            <div className="p-2 bg-orange-100 rounded-lg">
+              <FileText className="h-6 w-6 text-orange-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold text-orange-900">Gestão de contratos</div>
-          </CardContent>
         </Card>
 
-        <Card className="bg-blue-50 border-blue-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-700">Configurações</CardTitle>
-            <TrendingUp className="h-5 w-5 text-blue-600" />
+        <Card className="bg-blue-50 border-blue-200 hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <div>
+              <CardTitle className="text-lg font-semibold text-blue-900">Configurações</CardTitle>
+              <CardDescription className="text-sm text-blue-700">Ajustes do sistema</CardDescription>
+            </div>
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Settings className="h-6 w-6 text-blue-600" />
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold text-blue-900">Ajustes do sistema</div>
-          </CardContent>
         </Card>
       </div>
 
-      {/* Métricas */}
+      {/* Métricas principais */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">Valor Total em Negociação</CardTitle>
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1 bg-purple-100 rounded">
+                <DollarSign className="h-4 w-4 text-purple-600" />
+              </div>
+              <CardTitle className="text-sm font-medium text-gray-600">Valor Total em Negociação</CardTitle>
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">R$ 500,00</div>
+          <CardContent className="pt-0">
+            <div className="text-2xl font-bold text-gray-900">R$ 1.000,00</div>
             <p className="text-sm text-gray-500">No quadro selecionado</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">Vendas Concluídas</CardTitle>
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1 bg-green-100 rounded">
+                <TrendingUp className="h-4 w-4 text-green-600" />
+              </div>
+              <CardTitle className="text-sm font-medium text-gray-600">Vendas Concluídas</CardTitle>
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">R$ 0,00</div>
+          <CardContent className="pt-0">
+            <div className="text-2xl font-bold text-gray-900">R$ 0,00</div>
             <p className="text-sm text-gray-500">No período selecionado</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-gray-600">Taxa de Conversão</CardTitle>
+        <Card className="border-0 shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1 bg-blue-100 rounded">
+                <BarChart className="h-4 w-4 text-blue-600" />
+              </div>
+              <CardTitle className="text-sm font-medium text-gray-600">Taxa de Conversão</CardTitle>
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0,0%</div>
+          <CardContent className="pt-0">
+            <div className="text-2xl font-bold text-gray-900">0.0%</div>
             <p className="text-sm text-gray-500">Vendas concluídas / Total em negociação</p>
           </CardContent>
         </Card>
@@ -92,27 +119,30 @@ const Dashboard = () => {
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>Movimentação Financeira</CardTitle>
-            <CardDescription>26/04/2025 até 26/05/2025</CardDescription>
+            <CardTitle className="text-lg font-semibold">Movimentação Financeira</CardTitle>
+            <CardDescription>14/05/2025 até 13/06/2025</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-center justify-center text-gray-500">
-              <p>Gráfico de movimentação financeira</p>
+            <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+              <div className="text-center">
+                <BarChart className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p className="text-gray-500">Gráfico de movimentação financeira</p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>Status dos Contratos</CardTitle>
+            <CardTitle className="text-lg font-semibold">Status dos Contratos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-center justify-center text-gray-500">
+            <div className="h-64 flex items-center justify-center">
               <div className="text-center">
-                <p className="text-4xl font-bold">0</p>
-                <p>Total</p>
+                <div className="text-4xl font-bold text-gray-900 mb-2">0</div>
+                <p className="text-gray-500">Total</p>
               </div>
             </div>
           </CardContent>
@@ -121,34 +151,42 @@ const Dashboard = () => {
 
       {/* Seções inferiores */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>Top Vendedores</CardTitle>
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-gray-600" />
+              <CardTitle className="text-lg font-semibold">Top Vendedores</CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8 text-gray-500">
               <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Não há cartões na lista concluída</p>
-              <button className="mt-2 text-purple-600 hover:text-purple-700">
-                Mudar quadro
-              </button>
-              <span className="mx-2 text-gray-400">|</span>
-              <button className="text-purple-600 hover:text-purple-700">
-                Verificação Automática
-              </button>
+              <p className="mb-4">Não há cartões na lista concluída</p>
+              <div className="flex items-center justify-center gap-4">
+                <button className="text-purple-600 hover:text-purple-700 font-medium">
+                  Mudar quadro
+                </button>
+                <span className="text-gray-400">|</span>
+                <button className="text-purple-600 hover:text-purple-700 font-medium">
+                  Verificação Automática
+                </button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>Próximos Eventos</CardTitle>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-gray-600" />
+              <CardTitle className="text-lg font-semibold">Próximos Eventos</CardTitle>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8 text-gray-500">
               <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Não há eventos programados para os próximos 7 dias</p>
-              <button className="mt-2 text-purple-600 hover:text-purple-700">
+              <p className="mb-4">Não há eventos programados para os próximos 7 dias</p>
+              <button className="text-purple-600 hover:text-purple-700 font-medium">
                 Ver calendário completo →
               </button>
             </div>
