@@ -11,8 +11,6 @@ import {
   DollarSign,
   FileText,
   Globe,
-  Bot,
-  MessageSquare,
   Tag,
   ChevronDown,
   ChevronRight
@@ -74,14 +72,16 @@ const marcadores = [
 ]
 
 export function AppSidebar() {
-  const { collapsed } = useSidebar()
+  const { state } = useSidebar()
   const location = useLocation()
   const [marcadoresOpen, setMarcadoresOpen] = useState(false)
+  
+  const collapsed = state === "collapsed"
 
   const isActive = (url: string) => location.pathname === url
 
   return (
-    <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible>
+    <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible="icon">
       <div className="p-4 border-b">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">

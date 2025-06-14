@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { Plus, Search, Filter, MoreVertical, Archive } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -80,7 +81,7 @@ const GestaoFunil = () => {
                 assignees: ['Ana Costa'],
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
-                subtasks: { completed: 0, total: 0 },
+                subtasks: [],
                 attachments: [],
                 customFields: [],
                 listId: '1'
@@ -157,7 +158,7 @@ const GestaoFunil = () => {
   const handleCreateCard = (listId: string, cardData: any) => {
     if (!currentBoard) return
     
-    const newCard = {
+    const newCard: KanbanCard = {
       id: Date.now().toString(),
       title: cardData.title || '',
       description: cardData.description,
@@ -167,8 +168,8 @@ const GestaoFunil = () => {
       time: cardData.time,
       responsible: cardData.responsible,
       priority: cardData.priority || 'medium',
-      subtasks: { completed: 0, total: 0 },
-      attachments: 0,
+      subtasks: [],
+      attachments: [],
       tags: cardData.tags || [],
       customFields: cardData.customFields || [],
       listId,
@@ -414,88 +415,94 @@ const GestaoFunil = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold text-gray-900">Gestão de Funil</h1>
-          <BoardSelector 
-            boards={boards}
-            currentBoardId={currentBoard?.id || ''}
-            onSelectBoard={(boardId) => {
-              const board = boards.find(b => b.id === boardId)
-              if (board) setCurrentBoard(board)
-            }}
-            onCreateBoard={() => setShowCreateBoard(true)}
-          />
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setShowTagManager(true)}>
-            Gerenciar Tags
-          </Button>
-          
-          <Button variant="outline" onClick={() => setShowCompletedCards(true)}>
-            <Archive className="h-4 w-4 mr-2" />
-            Concluídos
-          </Button>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Opções do Board</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setShowAutomation(true)}>
-                Automações
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowBoardConfig(true)}>
-                Configurações
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <Button onClick={() => setShowCreateList(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nova Lista
-          </Button>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <Input
-              placeholder="Buscar cards..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
+    <div className="h-full flex flex-col">
+      {/* Header fixo */}
+      <div className="bg-white border-b p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold text-gray-900">Gestão de Funil</h1>
+            <BoardSelector 
+              boards={boards}
+              currentBoardId={currentBoard?.id || ''}
+              onSelectBoard={(boardId) => {
+                const board = boards.find(b => b.id === boardId)
+                if (board) setCurrentBoard(board)
+              }}
+              onCreateBoard={() => setShowCreateBoard(true)}
             />
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4" />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setShowTagManager(true)}>
+              Gerenciar Tags
+            </Button>
+            
+            <Button variant="outline" onClick={() => setShowCompletedCards(true)}>
+              <Archive className="h-4 w-4 mr-2" />
+              Concluídos
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Opções do Board</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setShowAutomation(true)}>
+                  Automações
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowBoardConfig(true)}>
+                  Configurações
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <Button onClick={() => setShowCreateList(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nova Lista
             </Button>
           </div>
         </div>
-        
-        <Badge variant="outline" className="text-sm">
-          {currentBoard.lists.flatMap(list => list.cards).length} cards encontrados
-        </Badge>
+
+        <div className="flex items-center gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Buscar cards..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="max-w-sm"
+              />
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          
+          <Badge variant="outline" className="text-sm">
+            {currentBoard.lists.flatMap(list => list.cards).length} cards encontrados
+          </Badge>
+        </div>
       </div>
 
-      <KanbanBoard
-        board={currentBoard}
-        onMoveCard={handleMoveCard}
-        onEditCard={handleEditCard}
-        onEditList={handleEditList}
-        onDeleteCard={handleDeleteCard}
-        onCreateCard={(listId) => {
-          setSelectedListId(listId)
-          setShowCreateCard(true)
-        }}
-        onCreateList={() => setShowCreateList(true)}
-      />
+      {/* Área do quadro com scroll */}
+      <div className="flex-1 overflow-auto">
+        <KanbanBoard
+          board={currentBoard}
+          onMoveCard={handleMoveCard}
+          onEditCard={handleEditCard}
+          onEditList={handleEditList}
+          onDeleteCard={handleDeleteCard}
+          onCreateCard={(listId) => {
+            setSelectedListId(listId)
+            setShowCreateCard(true)
+          }}
+          onCreateList={() => setShowCreateList(true)}
+        />
+      </div>
 
       <CreateBoardDialog 
         open={showCreateBoard}
@@ -568,6 +575,7 @@ const GestaoFunil = () => {
         onOpenChange={setShowAutomation}
         board={currentBoard}
         automations={automations}
+        onCreateAutomation={handleCreateAutomation}
       />
 
       <BoardConfigDialog
