@@ -385,10 +385,12 @@ const GestaoFunil = () => {
     return matchesSearch && matchesTags && matchesAssignee && matchesPriority;
   })) || [];
   const completedCards = currentBoard?.lists.flatMap(list => list.cards.filter(card => card.tags.includes('4'))) || [];
+  
   if (!currentBoard) {
-    return <div className="h-screen flex flex-col">
+    return (
+      <div className="h-full flex flex-col">
         {/* Header fixo */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+        <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0 sticky top-0 z-10">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold text-gray-900">Gestão de Funil</h1>
             <Button onClick={() => setShowCreateBoard(true)}>
@@ -411,18 +413,26 @@ const GestaoFunil = () => {
         </div>
 
         <CreateBoardDialog open={showCreateBoard} onOpenChange={setShowCreateBoard} onCreateBoard={handleCreateBoard} />
-      </div>;
+      </div>
+    );
   }
-  return <div className="h-screen flex flex-col">
-      {/* Header fixo */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* Header fixo - sem scroll horizontal */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold text-gray-900">Gestão de Funil</h1>
-            <BoardSelector boards={boards as any} currentBoardId={currentBoard?.id || ''} onSelectBoard={boardId => {
-            const board = boards.find(b => b.id === boardId);
-            if (board) setCurrentBoard(board);
-          }} onCreateBoard={() => setShowCreateBoard(true)} />
+            <BoardSelector 
+              boards={boards as any} 
+              currentBoardId={currentBoard?.id || ''} 
+              onSelectBoard={boardId => {
+                const board = boards.find(b => b.id === boardId);
+                if (board) setCurrentBoard(board);
+              }} 
+              onCreateBoard={() => setShowCreateBoard(true)} 
+            />
           </div>
           
           <div className="flex items-center gap-2">
@@ -463,7 +473,12 @@ const GestaoFunil = () => {
         <div className="flex items-center gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <Input placeholder="Buscar cards..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="max-w-sm" />
+              <Input 
+                placeholder="Buscar cards..." 
+                value={searchTerm} 
+                onChange={e => setSearchTerm(e.target.value)} 
+                className="max-w-sm" 
+              />
               <Button variant="outline" size="sm">
                 <Filter className="h-4 w-4" />
               </Button>
@@ -476,47 +491,103 @@ const GestaoFunil = () => {
         </div>
       </div>
 
-      {/* Área do quadro com scroll */}
-      <div className="flex-1 overflow-hidden">
-        <KanbanBoard board={currentBoard as any} onMoveCard={handleMoveCard} onEditCard={handleEditCard as any} onEditList={handleEditList as any} onDeleteCard={handleDeleteCard} onCreateCard={listId => {
-        setSelectedListId(listId);
-        setShowCreateCard(true);
-      }} onCreateList={() => setShowCreateList(true)} />
+      {/* Área do quadro com scroll horizontal independente */}
+      <div className="flex-1 overflow-hidden bg-gray-50">
+        <KanbanBoard 
+          board={currentBoard as any} 
+          onMoveCard={handleMoveCard} 
+          onEditCard={handleEditCard as any} 
+          onEditList={handleEditList as any} 
+          onDeleteCard={handleDeleteCard} 
+          onCreateCard={listId => {
+            setSelectedListId(listId);
+            setShowCreateCard(true);
+          }} 
+          onCreateList={() => setShowCreateList(true)} 
+        />
       </div>
 
       {/* Dialogs */}
       <CreateBoardDialog open={showCreateBoard} onOpenChange={setShowCreateBoard} onCreateBoard={handleCreateBoard} />
 
-      <CreateCardDialog open={showCreateCard} onOpenChange={setShowCreateCard} availableTags={tags as any} onCreateTag={() => setShowTagManager(true)} onCreateCard={cardData => handleCreateCard(selectedListId, cardData)} />
+      <CreateCardDialog 
+        open={showCreateCard} 
+        onOpenChange={setShowCreateCard} 
+        availableTags={tags as any} 
+        onCreateTag={() => setShowTagManager(true)} 
+        onCreateCard={cardData => handleCreateCard(selectedListId, cardData)} 
+      />
 
-      <CreateListDialog open={showCreateList} onOpenChange={setShowCreateList} onCreateList={handleCreateList} />
+      <CreateListDialog 
+        open={showCreateList} 
+        onOpenChange={setShowCreateList} 
+        onCreateList={handleCreateList} 
+      />
 
-      {selectedCard && <EditCardDialog open={showEditCard} onOpenChange={setShowEditCard} card={selectedCard as any} availableTags={tags as any} onCreateTag={() => setShowTagManager(true)} onEditCard={updates => {
-      handleUpdateCard(selectedCard.id, updates);
-    }} />}
+      {selectedCard && (
+        <EditCardDialog 
+          open={showEditCard} 
+          onOpenChange={setShowEditCard} 
+          card={selectedCard as any} 
+          availableTags={tags as any} 
+          onCreateTag={() => setShowTagManager(true)} 
+          onEditCard={updates => {
+            handleUpdateCard(selectedCard.id, updates);
+          }} 
+        />
+      )}
 
-      {selectedList && <EditListDialog open={showEditList} onOpenChange={setShowEditList} list={selectedList as any} onEditList={(listId, title, color) => {
-      handleUpdateList(listId, {
-        title,
-        color
-      });
-    }} onDeleteList={handleDeleteList} />}
+      {selectedList && (
+        <EditListDialog 
+          open={showEditList} 
+          onOpenChange={setShowEditList} 
+          list={selectedList as any} 
+          onEditList={(listId, title, color) => {
+            handleUpdateList(listId, { title, color });
+          }} 
+          onDeleteList={handleDeleteList} 
+        />
+      )}
 
-      <TagManager open={showTagManager} onOpenChange={setShowTagManager} tags={tags as any} onCreateTag={handleCreateTag as any} onDeleteTag={handleDeleteTag} onTagsChange={setTags as any} />
+      <TagManager 
+        open={showTagManager} 
+        onOpenChange={setShowTagManager} 
+        tags={tags as any} 
+        onCreateTag={handleCreateTag as any} 
+        onDeleteTag={handleDeleteTag} 
+        onTagsChange={setTags as any} 
+      />
 
-      <CompletedCards open={showCompletedCards} onOpenChange={setShowCompletedCards} board={currentBoard as any} completedListId={currentBoard?.completedListId} onSetCompletedList={listId => {
-      if (currentBoard) {
-        handleUpdateBoard(currentBoard.id, {
-          completedListId: listId
-        });
-      }
-    }} />
+      <CompletedCards 
+        open={showCompletedCards} 
+        onOpenChange={setShowCompletedCards} 
+        board={currentBoard as any} 
+        completedListId={currentBoard?.completedListId} 
+        onSetCompletedList={listId => {
+          if (currentBoard) {
+            handleUpdateBoard(currentBoard.id, { completedListId: listId });
+          }
+        }} 
+      />
 
-      <AutomationDialog open={showAutomation} onOpenChange={setShowAutomation} board={currentBoard as any} automations={automations as any} onCreateAutomation={handleCreateAutomation as any} />
+      <AutomationDialog 
+        open={showAutomation} 
+        onOpenChange={setShowAutomation} 
+        board={currentBoard as any} 
+        automations={automations as any} 
+        onCreateAutomation={handleCreateAutomation as any} 
+      />
 
-      <BoardConfigDialog open={showBoardConfig} onOpenChange={setShowBoardConfig} board={currentBoard as any} onUpdateBoard={(boardId, config) => {
-      handleUpdateBoard(boardId, config);
-    }} />
-    </div>;
+      <BoardConfigDialog 
+        open={showBoardConfig} 
+        onOpenChange={setShowBoardConfig} 
+        board={currentBoard as any} 
+        onUpdateBoard={(boardId, config) => {
+          handleUpdateBoard(boardId, config);
+        }} 
+      />
+    </div>
+  );
 };
+
 export default GestaoFunil;
