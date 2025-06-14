@@ -386,31 +386,37 @@ const GestaoFunil = () => {
   })) || [];
   const completedCards = currentBoard?.lists.flatMap(list => list.cards.filter(card => card.tags.includes('4'))) || [];
   if (!currentBoard) {
-    return <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Gestão de Funil</h1>
-          <Button onClick={() => setShowCreateBoard(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Criar Board
-          </Button>
+    return <div className="h-screen flex flex-col">
+        {/* Header fixo */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-gray-900">Gestão de Funil</h1>
+            <Button onClick={() => setShowCreateBoard(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Criar Board
+            </Button>
+          </div>
         </div>
         
-        <Card>
-          <CardContent className="p-6 text-center">
-            <p className="text-gray-500 mb-4">Nenhum board encontrado</p>
-            <Button onClick={() => setShowCreateBoard(true)}>
-              Criar seu primeiro board
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Conteúdo */}
+        <div className="flex-1 p-6">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-gray-500 mb-4">Nenhum board encontrado</p>
+              <Button onClick={() => setShowCreateBoard(true)}>
+                Criar seu primeiro board
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
 
         <CreateBoardDialog open={showCreateBoard} onOpenChange={setShowCreateBoard} onCreateBoard={handleCreateBoard} />
       </div>;
   }
-  return <div className="h-full flex flex-col">
+  return <div className="h-screen flex flex-col">
       {/* Header fixo */}
-      <div className="p-6 space-y-4 bg-white/0">
-        <div className="flex items-center justify-between">
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold text-gray-900">Gestão de Funil</h1>
             <BoardSelector boards={boards as any} currentBoardId={currentBoard?.id || ''} onSelectBoard={boardId => {
@@ -471,13 +477,14 @@ const GestaoFunil = () => {
       </div>
 
       {/* Área do quadro com scroll */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-hidden">
         <KanbanBoard board={currentBoard as any} onMoveCard={handleMoveCard} onEditCard={handleEditCard as any} onEditList={handleEditList as any} onDeleteCard={handleDeleteCard} onCreateCard={listId => {
         setSelectedListId(listId);
         setShowCreateCard(true);
       }} onCreateList={() => setShowCreateList(true)} />
       </div>
 
+      {/* Dialogs */}
       <CreateBoardDialog open={showCreateBoard} onOpenChange={setShowCreateBoard} onCreateBoard={handleCreateBoard} />
 
       <CreateCardDialog open={showCreateCard} onOpenChange={setShowCreateCard} availableTags={tags as any} onCreateTag={() => setShowTagManager(true)} onCreateCard={cardData => handleCreateCard(selectedListId, cardData)} />
