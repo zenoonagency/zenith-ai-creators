@@ -25,19 +25,100 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Board, KanbanList, KanbanCard, Tag, CardFilter, Automation, BoardConfig } from '@/types/kanban'
+
+// Definindo tipos locais compatíveis com os componentes
+interface LocalSubtask {
+  id: string
+  name: string
+  description: string
+  completed: boolean
+}
+
+interface LocalAttachment {
+  id: string
+  name: string
+  type: 'image' | 'document' | 'video'
+  url: string
+}
+
+interface LocalCustomField {
+  id: string
+  name: string
+  value: string
+}
+
+interface LocalKanbanCard {
+  id: string
+  title: string
+  description?: string
+  value: number
+  phone?: string
+  date?: string
+  time?: string
+  responsible?: string
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  subtasks: LocalSubtask[]
+  attachments: LocalAttachment[]
+  tags: string[]
+  customFields: LocalCustomField[]
+  listId: string
+  assignees: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+interface LocalKanbanList {
+  id: string
+  title: string
+  cards: LocalKanbanCard[]
+  totalValue: number
+  color?: string
+}
+
+interface LocalBoard {
+  id: string
+  name: string
+  description?: string
+  lists: LocalKanbanList[]
+  visibility?: 'everyone' | 'me' | 'specific'
+  completedListId?: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface LocalTag {
+  id: string
+  name: string
+  color: string
+}
+
+interface LocalCardFilter {
+  tags: string[]
+  assignee: string
+  priority: string
+  dueDate: string
+}
+
+interface LocalAutomation {
+  id: string
+  trigger: string
+  sourceListId?: string
+  targetListId?: string
+  webhookUrl: string
+  active: boolean
+}
 
 const GestaoFunil = () => {
-  const [boards, setBoards] = useState<Board[]>([])
-  const [currentBoard, setCurrentBoard] = useState<Board | null>(null)
+  const [boards, setBoards] = useState<LocalBoard[]>([])
+  const [currentBoard, setCurrentBoard] = useState<LocalBoard | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filter, setFilter] = useState<CardFilter>({
+  const [filter, setFilter] = useState<LocalCardFilter>({
     tags: [],
     assignee: '',
     priority: '',
     dueDate: ''
   })
-  const [automations, setAutomations] = useState<Automation[]>([])
+  const [automations, setAutomations] = useState<LocalAutomation[]>([])
   const [showCreateBoard, setShowCreateBoard] = useState(false)
   const [showCreateCard, setShowCreateCard] = useState(false)
   const [showCreateList, setShowCreateList] = useState(false)
@@ -47,10 +128,10 @@ const GestaoFunil = () => {
   const [showCompletedCards, setShowCompletedCards] = useState(false)
   const [showAutomation, setShowAutomation] = useState(false)
   const [showBoardConfig, setShowBoardConfig] = useState(false)
-  const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null)
-  const [selectedList, setSelectedList] = useState<KanbanList | null>(null)
+  const [selectedCard, setSelectedCard] = useState<LocalKanbanCard | null>(null)
+  const [selectedList, setSelectedList] = useState<LocalKanbanList | null>(null)
   const [selectedListId, setSelectedListId] = useState<string>('')
-  const [tags, setTags] = useState<Tag[]>([
+  const [tags, setTags] = useState<LocalTag[]>([
     { id: '1', name: 'Urgente', color: '#EF4444' },
     { id: '2', name: 'Em Progresso', color: '#F59E0B' },
     { id: '3', name: 'Revisão', color: '#3B82F6' },
@@ -59,7 +140,7 @@ const GestaoFunil = () => {
 
   useEffect(() => {
     // Simular carregamento de boards
-    const mockBoards: Board[] = [
+    const mockBoards: LocalBoard[] = [
       {
         id: '1',
         name: 'Vendas Q1 2024',
@@ -123,7 +204,7 @@ const GestaoFunil = () => {
   }, [])
 
   const handleCreateBoard = (name: string, description?: string) => {
-    const newBoard: Board = {
+    const newBoard: LocalBoard = {
       id: Date.now().toString(),
       name,
       description: description || '',
@@ -136,7 +217,7 @@ const GestaoFunil = () => {
     setCurrentBoard(newBoard)
   }
 
-  const handleUpdateBoard = (boardId: string, updates: Partial<Board>) => {
+  const handleUpdateBoard = (boardId: string, updates: Partial<LocalBoard>) => {
     setBoards(boards.map(board => 
       board.id === boardId 
         ? { ...board, ...updates, updatedAt: new Date().toISOString() }
@@ -158,7 +239,7 @@ const GestaoFunil = () => {
   const handleCreateCard = (listId: string, cardData: any) => {
     if (!currentBoard) return
     
-    const newCard: KanbanCard = {
+    const newCard: LocalKanbanCard = {
       id: Date.now().toString(),
       title: cardData.title || '',
       description: cardData.description,
@@ -238,8 +319,8 @@ const GestaoFunil = () => {
     ))
   }
 
-  const handleCreateAutomation = (automation: Omit<Automation, 'id'>) => {
-    const newAutomation: Automation = {
+  const handleCreateAutomation = (automation: Omit<LocalAutomation, 'id'>) => {
+    const newAutomation: LocalAutomation = {
       ...automation,
       id: Date.now().toString()
     }
@@ -249,7 +330,7 @@ const GestaoFunil = () => {
   const handleCreateList = (title: string) => {
     if (!currentBoard) return
     
-    const newList: KanbanList = {
+    const newList: LocalKanbanList = {
       id: Date.now().toString(),
       title,
       cards: [],
@@ -268,7 +349,7 @@ const GestaoFunil = () => {
     ))
   }
 
-  const handleUpdateList = (listId: string, updates: Partial<KanbanList>) => {
+  const handleUpdateList = (listId: string, updates: Partial<LocalKanbanList>) => {
     if (!currentBoard) return
     
     const updatedBoard = {
@@ -341,18 +422,18 @@ const GestaoFunil = () => {
     ))
   }
 
-  const handleEditCard = (card: KanbanCard) => {
+  const handleEditCard = (card: LocalKanbanCard) => {
     setSelectedCard(card)
     setShowEditCard(true)
   }
 
-  const handleEditList = (list: KanbanList) => {
+  const handleEditList = (list: LocalKanbanList) => {
     setSelectedList(list)
     setShowEditList(true)
   }
 
-  const handleCreateTag = (tag: Omit<Tag, 'id'>) => {
-    const newTag: Tag = {
+  const handleCreateTag = (tag: Omit<LocalTag, 'id'>) => {
+    const newTag: LocalTag = {
       ...tag,
       id: Date.now().toString()
     }
@@ -422,7 +503,7 @@ const GestaoFunil = () => {
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold text-gray-900">Gestão de Funil</h1>
             <BoardSelector 
-              boards={boards}
+              boards={boards as any}
               currentBoardId={currentBoard?.id || ''}
               onSelectBoard={(boardId) => {
                 const board = boards.find(b => b.id === boardId)
@@ -491,10 +572,10 @@ const GestaoFunil = () => {
       {/* Área do quadro com scroll */}
       <div className="flex-1 overflow-auto">
         <KanbanBoard
-          board={currentBoard}
+          board={currentBoard as any}
           onMoveCard={handleMoveCard}
-          onEditCard={handleEditCard}
-          onEditList={handleEditList}
+          onEditCard={handleEditCard as any}
+          onEditList={handleEditList as any}
           onDeleteCard={handleDeleteCard}
           onCreateCard={(listId) => {
             setSelectedListId(listId)
@@ -513,7 +594,7 @@ const GestaoFunil = () => {
       <CreateCardDialog
         open={showCreateCard}
         onOpenChange={setShowCreateCard}
-        availableTags={tags}
+        availableTags={tags as any}
         onCreateTag={() => setShowTagManager(true)}
         onCreateCard={(cardData) => handleCreateCard(selectedListId, cardData)}
       />
@@ -528,8 +609,8 @@ const GestaoFunil = () => {
         <EditCardDialog
           open={showEditCard}
           onOpenChange={setShowEditCard}
-          card={selectedCard}
-          availableTags={tags}
+          card={selectedCard as any}
+          availableTags={tags as any}
           onCreateTag={() => setShowTagManager(true)}
           onEditCard={(updates) => {
             handleUpdateCard(selectedCard.id, updates)
@@ -541,7 +622,7 @@ const GestaoFunil = () => {
         <EditListDialog
           open={showEditList}
           onOpenChange={setShowEditList}
-          list={selectedList}
+          list={selectedList as any}
           onEditList={(listId, title, color) => {
             handleUpdateList(listId, { title, color })
           }}
@@ -552,16 +633,16 @@ const GestaoFunil = () => {
       <TagManager
         open={showTagManager}
         onOpenChange={setShowTagManager}
-        tags={tags}
-        onCreateTag={handleCreateTag}
+        tags={tags as any}
+        onCreateTag={handleCreateTag as any}
         onDeleteTag={handleDeleteTag}
-        onTagsChange={setTags}
+        onTagsChange={setTags as any}
       />
 
       <CompletedCards
         open={showCompletedCards}
         onOpenChange={setShowCompletedCards}
-        board={currentBoard}
+        board={currentBoard as any}
         completedListId={currentBoard?.completedListId}
         onSetCompletedList={(listId) => {
           if (currentBoard) {
@@ -573,15 +654,15 @@ const GestaoFunil = () => {
       <AutomationDialog
         open={showAutomation}
         onOpenChange={setShowAutomation}
-        board={currentBoard}
-        automations={automations}
-        onCreateAutomation={handleCreateAutomation}
+        board={currentBoard as any}
+        automations={automations as any}
+        onCreateAutomation={handleCreateAutomation as any}
       />
 
       <BoardConfigDialog
         open={showBoardConfig}
         onOpenChange={setShowBoardConfig}
-        board={currentBoard}
+        board={currentBoard as any}
         onUpdateBoard={(boardId, config) => {
           handleUpdateBoard(boardId, config)
         }}
